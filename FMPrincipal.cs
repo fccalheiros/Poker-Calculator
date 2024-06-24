@@ -216,7 +216,7 @@ namespace Confidencial
             for (byte i = 1; i <= 52; i++)
             {
                 c1.SET(i);
-                c2.SetValor(c1.ToString());
+                c2.SetValue(c1.ToString());
                 if (c1.SeqNumber != c2.SeqNumber)
                     return false;
             }

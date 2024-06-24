@@ -19,7 +19,7 @@ public struct CARD
 		return RetNaipeChar(naipe);
 	}
 
-	public void SetValor(string s)
+	public void SetValue(string s)
 	{
 		valor = RetValorByte(s[0]);
 		naipe = RetNaipeByte(s[1]);
