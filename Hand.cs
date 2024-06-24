@@ -1,6 +1,6 @@
 ﻿using System;
 
-
+// This structure represents a deck card
 public struct CARD
 {
     private byte cardNumber;
