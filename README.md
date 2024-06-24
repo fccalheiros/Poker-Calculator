@@ -1,2 +1,2 @@
 # Poker-Calculator
-A C++ Poker Calculator
+A C# Poker Calculator
