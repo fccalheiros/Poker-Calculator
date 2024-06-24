@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Confidencial
+namespace PokerCalculator
 {
     public delegate void simulCallBack(ulong w, ulong l, ulong t, float eqTie);
 
@@ -45,7 +45,6 @@ namespace Confidencial
             cb = callb;
         }
 
-
         public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb)
         {
             herohand = h;
@@ -60,7 +59,7 @@ namespace Confidencial
 
 
         // The method that will be called when the thread is started.
-        public void Simula()
+        public void Simulate()
         {
             ulong villainhand;
             ulong board;
@@ -93,7 +92,7 @@ namespace Confidencial
 
         }
 
-        public void SimulaRange()
+        public void SimulateRange()
         {
             ulong villainhand;
             ulong board;
@@ -129,7 +128,7 @@ namespace Confidencial
 
         }
 
-        public void SimulaRangeN()
+        public void SimulateRangeN()
         {
             ulong[] villainhand;
             ulong board;

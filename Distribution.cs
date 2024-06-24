@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Confidencial
+namespace PokerCalculator
 {
 
     public partial class Distribution : Form
@@ -743,7 +743,7 @@ namespace Confidencial
             for (int i = 0; i < nThreads; i++)
             {
                 server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, range, rangesize, nVillains, new simulCallBack(ResultCallback));
-                PokerServer[i] = new Thread(new ThreadStart(server[i].SimulaRangeN));
+                PokerServer[i] = new Thread(new ThreadStart(server[i].SimulateRangeN));
                 PokerServer[i].Start();
             }
 

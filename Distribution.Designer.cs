@@ -1,7 +1,7 @@
 ﻿
 using System.Windows.Forms;
 
-namespace Confidencial
+namespace PokerCalculator
 {
     partial class Distribution
     {

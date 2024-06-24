@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Confidencial
+namespace PokerCalculator
 {
     static class Program
     {

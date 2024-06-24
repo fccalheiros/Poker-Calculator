@@ -9,7 +9,7 @@
 //------------------------------------------------------------------------------
 
 
-namespace Confidencial.Properties
+namespace PokerCalculator.Properties
 {
     /// <summary>
     ///   Uma classe de recurso fortemente tipados, para pesquisar cadeias de caracteres localizadas etc.
@@ -43,7 +43,7 @@ namespace Confidencial.Properties
             {
                 if ((resourceMan == null))
                 {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Confidencial.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PokerCalculator.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

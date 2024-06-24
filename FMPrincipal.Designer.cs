@@ -1,5 +1,5 @@
 ﻿
-namespace Confidencial
+namespace PokerCalculator
 {
     partial class FMPrincipal
     {

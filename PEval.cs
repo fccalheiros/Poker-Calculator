@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace Confidencial
+namespace PokerCalculator
 {
     public static class CONSTANTS
     {
@@ -43,6 +43,7 @@ namespace Confidencial
             return c;
         }
 
+        // Cleans lower significant bit
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset)
         {

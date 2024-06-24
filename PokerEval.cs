@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Confidencial
+namespace PokerCalculator
 {
     class PokerEval
     {

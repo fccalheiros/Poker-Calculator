@@ -4,7 +4,7 @@ using System.Threading;
 using System.Windows.Forms;
 
 
-namespace Confidencial
+namespace PokerCalculator
 {
     public partial class FMPrincipal : Form
     {
@@ -1016,7 +1016,7 @@ namespace Confidencial
             for (int i = 0; i < nThreads; i++)
             {
                 server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, new simulCallBack(ResultCallback));
-                PokerServer[i] = new Thread(new ThreadStart(server[i].Simula));
+                PokerServer[i] = new Thread(new ThreadStart(server[i].Simulate));
                 PokerServer[i].Start();
             }
 
@@ -1057,7 +1057,7 @@ namespace Confidencial
             for (int i = 0; i < nThreads; i++)
             {
                 server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, Program.FMDistribution.RangeSelection, Program.FMDistribution.SelectionSize, new simulCallBack(ResultCallback));
-                PokerServer[i] = new Thread(new ThreadStart(server[i].SimulaRange));
+                PokerServer[i] = new Thread(new ThreadStart(server[i].SimulateRange));
                 PokerServer[i].Start();
             }
 
@@ -1107,7 +1107,7 @@ namespace Confidencial
             for (int i = 0; i < nThreads; i++)
             {
                 server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, range, rangesize, nVillains, new simulCallBack(ResultCallback));
-                PokerServer[i] = new Thread(new ThreadStart(server[i].SimulaRangeN));
+                PokerServer[i] = new Thread(new ThreadStart(server[i].SimulateRangeN));
                 PokerServer[i].Start();
             }
 
@@ -1146,7 +1146,7 @@ namespace Confidencial
                         for (int i = 0; i < nThreads; i++)
                         {
                             server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, new simulCallBack(ResultCallback));
-                            PokerServer[i] = new Thread(new ThreadStart(server[i].Simula));
+                            PokerServer[i] = new Thread(new ThreadStart(server[i].Simulate));
                             PokerServer[i].Start();
                         }
 
