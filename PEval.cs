@@ -282,7 +282,7 @@ namespace PokerCalculator
             }
             boardCards = allCards ^ heroCards;
 
-            //first villain card
+            //villain first card
             next = R.Next(0, CONSTANTS.CARDS_TOTAL);
             n = CONSTANTS.ONE << next;
             while ((allCards & n) > 0)
@@ -292,7 +292,7 @@ namespace PokerCalculator
             }
             allCards |= n;
 
-            //second villain card
+            //villain second card
             next = R.Next(0, CONSTANTS.CARDS_TOTAL);
             n = CONSTANTS.ONE << next;
             while ((allCards & n) > 0)
@@ -316,7 +316,7 @@ namespace PokerCalculator
 
             allCards = heroCards | currentBoard;
 
-            //Vilain pocket pair
+            //Vilain pocket cards
             villainCards = range[R.Next(0, rangesize)];
             while ((allCards & villainCards) > 0)
             {
@@ -616,10 +616,6 @@ namespace PokerCalculator
                                     for (c6 = c5 << 1; c6 < max6; c6 <<= 1)
                                     {
                                         cardset |= c6;
-
-                                        //int strength = PEval.ProcessCardSet(cardset);
-                                        //int game = PEval.ReturnHandPower(strength);
-                                        //res[game]++;
 
                                         res[PEval.ReturnHandPower(PEval.ProcessCardSet(cardset))]++;
 

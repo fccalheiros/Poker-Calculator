@@ -8,7 +8,6 @@ namespace PokerCalculator
     {
         private int _i;
         private int _j;
-        //private int _type;   //0 - Range 1 - Card
         private bool _selected;
         private Color _maincolor;
 

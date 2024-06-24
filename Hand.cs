@@ -158,14 +158,14 @@ public enum PokerHands : int
 public class HoldemPokerHand
 {
 
-    //cartas são número de 1 .. 52 --- A até K e Paus - copas - espadas - ouro
-    // suit 0 - paus - 1 copas - 2 espadas - 3 ouros
+    //Cards are numbers from 1 .. 52 --- A até K e Clubs - Hearts - Spades - Diamonds
+    // suit 0 - Clubs - 1 Hearts - 2 Spades - 3 Diamonds
 
     const int TotalCards = 52;
     const int NumCards = 14;
     const int Numsuits = 4;
     const int BoardSize = 5;
-    const int pocketSize = 2;
+    const int pocketCardsSize = 2;
 
     private CARD[] pocketCards;
     private CARD[] board;
@@ -211,7 +211,7 @@ public class HoldemPokerHand
         int res = -1;
         c = new CARD(0);
 
-        for (int i = 0; i < pocketSize; i++)
+        for (int i = 0; i < pocketCardsSize; i++)
         {
             if (pocketCards[i].suit == suit)
             {
@@ -295,13 +295,14 @@ public class HoldemPokerHand
             c1[i] = new CARD(0);
         }
 
+        // c will bring the 5 cards used for the player´s hand which will enable the tiebreker
         ha = ReturnPokerHand(ref c);
         hb = b.ReturnPokerHand(ref c1);
 
         if (ha < hb) return -1;
         if (ha > hb) return 1;
 
-        // Tratamento do As. Deve ser considerado a carta mais alta.
+        // Ace must be considered the higher card.
         for (int i = 0; i < BoardSize; i++)
         {
             if (c[i].value == 0 & !c[i].IsEmpty()) c[i].value = 13;
@@ -663,14 +664,14 @@ public class HoldemPokerHand
         int[] b = new int[cards.Length - 2];
 
         for (int i = 0; i < BoardSize; i++) b[i] = cards[i];
-        for (int i = 0; i < pocketSize; i++) p[i] = cards[i + BoardSize];
+        for (int i = 0; i < pocketCardsSize; i++) p[i] = cards[i + BoardSize];
         return SetHand(p, b);
 
     }
 
     public bool SetHand(int[] pocket, int[] boardCards)
     {
-        bool res = (pocketCards.Length == pocketSize) & ((boardCards.Length == 0) | ((boardCards.Length >= 3) & boardCards.Length <= BoardSize));
+        bool res = (pocketCards.Length == pocketCardsSize) & ((boardCards.Length == 0) | ((boardCards.Length >= 3) & boardCards.Length <= BoardSize));
         CARD carta;
 
         if (!res) return res;
@@ -707,7 +708,7 @@ public class HoldemPokerHand
         s = s.ToUpper();
         c = s.Length / 2;
 
-        string[] p = new string[pocketSize];
+        string[] p = new string[pocketCardsSize];
         string[] b = new string[BoardSize];
 
         if (c < BoardSize) return false;
@@ -728,10 +729,10 @@ public class HoldemPokerHand
     public bool SetHand(string[] pocket, string[] boardCards)
     {
 
-        bool res = (pocketCards.Length == pocketSize) & ((boardCards.Length == 0) | ((boardCards.Length >= 3) & boardCards.Length <= BoardSize));
+        bool res = (pocketCards.Length == pocketCardsSize) & ((boardCards.Length == 0) | ((boardCards.Length >= 3) & boardCards.Length <= BoardSize));
         if (!res) return res;
 
-        int[] p = new int[pocketSize];
+        int[] p = new int[pocketCardsSize];
         int[] b = new int[boardCards.Length];
 
         for (int i = 0; i < p.Length; i++) p[i] = CARD.ToInt(pocket[i]);
@@ -745,7 +746,7 @@ public class HoldemPokerHand
 
         hand = new byte[NumCards];
         suits = new byte[Numsuits];
-        pocketCards = new CARD[pocketSize];
+        pocketCards = new CARD[pocketCardsSize];
         board = new CARD[BoardSize];
 
         this.ResetHand();
@@ -796,9 +797,9 @@ public class HoldemPokerHand
         }
 
         int[] b = new int[boardcards];
-        int[] p = new int[pocketSize];
+        int[] p = new int[pocketCardsSize];
         for (int i = 0; i < boardcards; i++) { b[i] = c[i]; }
-        for (int i = 0; i < pocketSize; i++) { p[i] = c[i + boardcards]; }
+        for (int i = 0; i < pocketCardsSize; i++) { p[i] = c[i + boardcards]; }
 
         SetHand(p, b);
 
@@ -816,7 +817,7 @@ public class HoldemPokerHand
         int next = 0;
         int[] c = new int[boardcards.Length + 4];
         int[] b = new int[boardcards.Length];
-        int[] p = new int[pocketSize];
+        int[] p = new int[pocketCardsSize];
         bool ok;
 
         for (int i = 0; i < boardcards.Length; i++)
@@ -848,7 +849,7 @@ public class HoldemPokerHand
             c[i] = next;
         }
 
-        for (int i = 0; i < pocketSize; i++) { p[i] = c[i + boardcards.Length + 2]; }
+        for (int i = 0; i < pocketCardsSize; i++) { p[i] = c[i + boardcards.Length + 2]; }
 
         SetHand(p, b);
 
@@ -868,7 +869,7 @@ public class HoldemPokerHand
 
     public HoldemPokerHand(int[] pocket)
     {
-        if (pocket.Length == pocketSize)
+        if (pocket.Length == pocketCardsSize)
         {
             ClassInitiator(pocket[0], pocket[1]);
         }

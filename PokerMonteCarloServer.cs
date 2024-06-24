@@ -3,32 +3,30 @@ using System.Threading;
 
 namespace PokerCalculator
 {
-    public delegate void simulCallBack(ulong w, ulong l, ulong t, float eqTie);
+    public delegate void simulCallBack(ulong w, ulong l, ulong t, float tieEquity);
 
     class PokerMonteCarloServer
     {
-        ulong herohand;
-        ulong currentBoard;
-        int boardCardsLeft;
+        private readonly ulong herohand;
+        private readonly ulong currentBoard;
+        private readonly int boardCardsLeft;
+        private readonly ulong numberOfSimulations;
 
-        ulong nSimul;
+        private ulong win, tie, lost;
+        private float tieEquity;
 
-        ulong win, tie, lost;
-        float eqTie;
+        private readonly ulong[] range;
+        private readonly int rangeSize;
+        private readonly int nVillains;
+        private readonly ulong[,] rangeN;
+        private readonly int[] rangeSizeN;
 
-
-        ulong[] range;
-        int rangeSize;
-        int nVillains;
-        ulong[,] rangeN;
-        int[] rangeSizeN;
-
-        private simulCallBack cb;
+        private readonly simulCallBack cb;
 
         public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb)
         {
             herohand = h;
-            nSimul = n;
+            numberOfSimulations = n;
             currentBoard = currboard;
             boardCardsLeft = bcl;
             cb = callb;
@@ -37,7 +35,7 @@ namespace PokerCalculator
         public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb)
         {
             herohand = h;
-            nSimul = n;
+            numberOfSimulations = n;
             currentBoard = currboard;
             boardCardsLeft = bcl;
             range = r;
@@ -48,7 +46,7 @@ namespace PokerCalculator
         public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb)
         {
             herohand = h;
-            nSimul = n;
+            numberOfSimulations = n;
             currentBoard = currboard;
             boardCardsLeft = bcl;
             rangeN = r;
@@ -71,7 +69,7 @@ namespace PokerCalculator
 
             win = 0; tie = 0; lost = 0;
 
-            for (ulong i = 0; i < nSimul; i++)
+            for (ulong i = 0; i < numberOfSimulations; i++)
             {
 
                 PEval.RandomHand(herohand, currentBoard, boardCardsLeft, out board, out villainhand, R);
@@ -86,9 +84,9 @@ namespace PokerCalculator
                     tie++;
 
             }
-            eqTie = (float)tie / 2;
+            tieEquity = (float)tie / 2;
 
-            if (cb != null) cb(win, lost, tie, eqTie);
+            if (cb != null) cb(win, lost, tie, tieEquity);
 
         }
 
@@ -103,9 +101,9 @@ namespace PokerCalculator
             Random R = new Random(DateTime.Now.Millisecond);
 
             win = 0; tie = 0; lost = 0;
-            eqTie = 0;
+            tieEquity = 0;
 
-            for (ulong i = 0; i < nSimul; i++)
+            for (ulong i = 0; i < numberOfSimulations; i++)
             {
 
                 PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
@@ -122,9 +120,9 @@ namespace PokerCalculator
 
             }
 
-            eqTie = (float)tie / 2;
+            tieEquity = (float)tie / 2;
 
-            if (cb != null) cb(win, lost, tie, eqTie);
+            if (cb != null) cb(win, lost, tie, tieEquity);
 
         }
 
@@ -143,9 +141,9 @@ namespace PokerCalculator
             Random R = new Random(DateTime.Now.Millisecond);
 
             win = 0; tie = 0; lost = 0;
-            eqTie = 0;
+            tieEquity = 0;
 
-            for (ulong i = 0; i < nSimul; i++)
+            for (ulong i = 0; i < numberOfSimulations; i++)
             {
 
                 PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
@@ -176,11 +174,11 @@ namespace PokerCalculator
                         }
 
                     }
-                    eqTie += (float)(1 / ((float)nTies + 1));
+                    tieEquity += (float)(1 / ((float)nTies + 1));
                 }
             }
 
-            if (cb != null) cb(win, lost, tie, eqTie);
+            if (cb != null) cb(win, lost, tie, tieEquity);
 
         }
 

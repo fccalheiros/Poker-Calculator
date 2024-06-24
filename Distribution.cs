@@ -12,30 +12,30 @@ namespace PokerCalculator
 
         const int nPlayers = 7;
 
-        private Button[] PlayerButton;
+        private readonly Button[] PlayerButton;
         private int SelectedPlayer;
         private PokerButton SavedBT;
 
-        private bool[,,] SelectedButton;
-        private PokerButton[,] ArrayButton;
+        private readonly bool[,,] SelectedButton;
+        private readonly PokerButton[,] ArrayButton;
 
-        private PokerButton[,] HeroButton;
+        private readonly PokerButton[,] HeroButton;
         private int HeroCardsSelected;
         private string HeroHandSTR;
         private string LastValidHeroHandSTR;
 
-        private PokerButton[,] BoardButton;
+        private readonly PokerButton[,] BoardButton;
         private int BoardCardsSelected;
         private string BoardCardsSTR;
         private string LastValidBoardCardsSTR;
 
-        private int[] TrackBarCache;
+        private readonly int[] TrackBarCache;
 
         public int[,] CardsSelection;
         public ulong[] RangeSelection;
-        private int _selectionsize;
+        private int selectionSize;
 
-        private string[] order = { "AA", "KK", "QQ", "JJ", "TT", "AKs", "99", "AQs", "AKo", "AJs", "KQs", "88", "ATs", "AQo", "KJs", "KTs", "QJs", "AJo", "KQo", "QTs",
+        private readonly string[] order = { "AA", "KK", "QQ", "JJ", "TT", "AKs", "99", "AQs", "AKo", "AJs", "KQs", "88", "ATs", "AQo", "KJs", "KTs", "QJs", "AJo", "KQo", "QTs",
                                    "A9s", "77", "ATo", "JTs", "KJo", "A8s", "K9s", "QJo", "A7s", "KTo", "Q9s", "A5s", "66", "A6s", "QTo", "J9s", "A9o", "T9s",
                                    "A4s", "K8s", "JTo", "K7s", "A8o", "A3s", "Q8s", "K9o", "A2s", "K6s", "J8s", "T8s", "A7o", "55", "Q9o", "98s", "K5s", "Q7s",
                                    "J9o","A5o", "T9o", "A6o", "K4s", "K8o", "Q6s", "J7s", "T7s", "A4o", "97s", "K3s", "87s", "Q5s", "K7o", "44", "Q8o", "A3o", "K2s",
@@ -48,7 +48,7 @@ namespace PokerCalculator
         private ulong w, l, t;
         private float et;
 
-        private static Mutex mut = new Mutex();
+        private static readonly Mutex mut = new Mutex();
 
         private bool _mainwindow;
 
@@ -60,8 +60,8 @@ namespace PokerCalculator
 
         public int SelectionSize
         {
-            get { return _selectionsize; }
-            set { _selectionsize = value; }
+            get { return selectionSize; }
+            set { selectionSize = value; }
         }
 
         public Distribution()
@@ -70,10 +70,10 @@ namespace PokerCalculator
             InitializeComponent();
             int size = 40;
             int space = 0;
-            int inicio = 60;
+            int start = 60;
+
             HeroButton = new PokerButton[4, 13];
             BoardButton = new PokerButton[4, 13];
-
             ArrayButton = new PokerButton[13, 13];
             CardsSelection = new int[51 * 52, 2];
             RangeSelection = new ulong[51 * 52];
@@ -101,7 +101,7 @@ namespace PokerCalculator
             PlayerButton[6] = BTP7;
             SelectedPlayer = 0;
 
-            int delta = inicio - BTP1.Location.X;
+            int delta = start - BTP1.Location.X;
             System.Drawing.Point L;
             for (int i = 0; i < nPlayers; i++)
             {
@@ -117,7 +117,7 @@ namespace PokerCalculator
                 {
                     ArrayButton[i, j] = new PokerButton(i, j)
                     {
-                        Location = new System.Drawing.Point(inicio + i * (size + space), inicio + j * (size + space)),
+                        Location = new System.Drawing.Point(start + i * (size + space), start + j * (size + space)),
                         Size = new System.Drawing.Size(size, size)
                     };
 
@@ -127,37 +127,33 @@ namespace PokerCalculator
                     ArrayButton[i, j].MouseDown += new System.Windows.Forms.MouseEventHandler(this.BT_MouseUP);
 
                     Controls.Add(ArrayButton[i, j]);
-
-
                 }
             }
 
             SavedBT = ArrayButton[12, 12];
 
-            TrackBAR.Location = new System.Drawing.Point(inicio, inicio + 14 * (size + space));
-            TBPercentual.Location = new System.Drawing.Point(inicio + TrackBAR.Size.Width + 10, TrackBAR.Location.Y);
+            TrackBAR.Location = new System.Drawing.Point(start, start + 14 * (size + space));
+            TBPercentual.Location = new System.Drawing.Point(start + TrackBAR.Size.Width + 10, TrackBAR.Location.Y);
             TBThreads.Location = new System.Drawing.Point(TBPercentual.Location.X, TBPercentual.Location.Y + TBPercentual.Height + 10);
-            TBOutput.Location = new System.Drawing.Point(inicio, TrackBAR.Location.Y + TrackBAR.Size.Height + 20);
-
-
+            TBOutput.Location = new System.Drawing.Point(start, TrackBAR.Location.Y + TrackBAR.Size.Height + 20);
 
             Size = new Size(1250, 850);
-            BTAll.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTAll.Location.Y);
-            BTSuited.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTSuited.Location.Y);
-            BTBroadway.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTBroadway.Location.Y);
-            BTPair.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTPair.Location.Y);
-            BTClear.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTClear.Location.Y);
-            BTClearAll.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTClearAll.Location.Y);
-            BTClearHero.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTClearHero.Location.Y);
-            BTClearBoard.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTClearBoard.Location.Y);
+            BTAll.Location = new System.Drawing.Point(start + 14 * (size + space), BTAll.Location.Y);
+            BTSuited.Location = new System.Drawing.Point(start + 14 * (size + space), BTSuited.Location.Y);
+            BTBroadway.Location = new System.Drawing.Point(start + 14 * (size + space), BTBroadway.Location.Y);
+            BTPair.Location = new System.Drawing.Point(start + 14 * (size + space), BTPair.Location.Y);
+            BTClear.Location = new System.Drawing.Point(start + 14 * (size + space), BTClear.Location.Y);
+            BTClearAll.Location = new System.Drawing.Point(start + 14 * (size + space), BTClearAll.Location.Y);
+            BTClearHero.Location = new System.Drawing.Point(start + 14 * (size + space), BTClearHero.Location.Y);
+            BTClearBoard.Location = new System.Drawing.Point(start + 14 * (size + space), BTClearBoard.Location.Y);
 
-            BTRUN.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTRUN.Location.Y);
+            BTRUN.Location = new System.Drawing.Point(start + 14 * (size + space), BTRUN.Location.Y);
 
             BTCancelar.Location = new System.Drawing.Point(BTRUN.Location.X, BTRUN.Location.Y + BTRUN.Height + 20);
 
-            TBHero.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size, inicio + 13 * (size + space) + 20);
+            TBHero.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size, start + 13 * (size + space) + 20);
             TBHero.Width = 4 * (size + space);
-            TBBoard.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + 5 * (size + space), inicio + 13 * (size + space) + 20);
+            TBBoard.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + 5 * (size + space), start + 13 * (size + space) + 20);
             TBBoard.Width = TBHero.Width;
 
             for (int i = 0; i < 4; i++)
@@ -166,13 +162,13 @@ namespace PokerCalculator
                 {
                     HeroButton[i, j] = new PokerButton(13 * i + j, Color.FromArgb(224, 127, 127))
                     {
-                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + i * (size + space), inicio + j * (size + space)),
+                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + i * (size + space), start + j * (size + space)),
                         Size = new System.Drawing.Size(size, size)
                     };
 
                     BoardButton[i, j] = new PokerButton(13 * i + j, Color.FromArgb(188, 206, 211))
                     {
-                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + (i + 5) * (size + space), inicio + j * (size + space)),
+                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + (i + 5) * (size + space), start + j * (size + space)),
                         Size = new System.Drawing.Size(size, size)
                     };
 
@@ -418,8 +414,8 @@ namespace PokerCalculator
             for (int i = 0; i < TrackBAR.Value; i++)
             {
                 string s = order[i];
-                int x = Converte(s.Substring(0, 1));
-                int y = Converte(s.Substring(1, 1));
+                int x = ToCardNumber(s.Substring(0, 1));
+                int y = ToCardNumber(s.Substring(1, 1));
                 if (s.Length == 2) { ArrayButton[x, y].SelectButton(); p += 6; }
                 else if (order[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].SelectButton(); p += 4; }
                 else { ArrayButton[x, y].SelectButton(); p += 12; }
@@ -427,8 +423,8 @@ namespace PokerCalculator
             for (int i = TrackBAR.Value; i < 169; i++)
             {
                 string s = order[i];
-                int x = Converte(s.Substring(0, 1));
-                int y = Converte(s.Substring(1, 1));
+                int x = ToCardNumber(s.Substring(0, 1));
+                int y = ToCardNumber(s.Substring(1, 1));
                 if (s.Length == 2) { ArrayButton[x, y].UnSelectButton(); }
                 else if (order[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].UnSelectButton(); }
                 else { ArrayButton[x, y].UnSelectButton(); }
@@ -497,7 +493,7 @@ namespace PokerCalculator
 
         }
 
-        private int Converte(string s)
+        private int ToCardNumber(string s)
         {
             s = s.ToUpper();
             switch (s[0])
@@ -511,8 +507,20 @@ namespace PokerCalculator
             }
 
         }
+        private int ToCardNumber(int c)
+        {
+            switch (c)
+            {
+                case 0: return 1; //Ace
+                default: return (14 - c);
+            }
+        }
+        private int ToCardNumberNew(int c)
+        {
+            return (12 - c);
+        }
 
-        private int ConverteSuit(string s)
+        private int ToSuitNumber(string s)
         {
             int suit;
             s = s.ToUpper();
@@ -527,19 +535,6 @@ namespace PokerCalculator
             return suit;
         }
 
-        private int Converte(int c)
-        {
-            switch (c)
-            {
-                case 0: return 1; //Ace
-                default: return (14 - c);
-            }
-        }
-
-        private int ConverteNovo(int c)
-        {
-            return (12 - c);
-        }
 
         private void BTRUN_Click(object sender, EventArgs e)
         {
@@ -583,7 +578,6 @@ namespace PokerCalculator
             }
             this.Refresh();
 
-
         }
 
         public void GetRange(out int nVillains, out ulong[,] range, out int[] rangesize)
@@ -603,8 +597,8 @@ namespace PokerCalculator
                     {
                         if (SelectedButton[nv, i, j])
                         {
-                            c1N = ConverteNovo(j);
-                            c2N = ConverteNovo(i);
+                            c1N = ToCardNumberNew(j);
+                            c2N = ToCardNumberNew(i);
 
                             if (i > j) //suited          
                             {
@@ -616,8 +610,8 @@ namespace PokerCalculator
                             }
                             else if (i < j) //unsuited  - use of modulus to make code cleaner
                             {
-                                c1N = ConverteNovo(i);
-                                c2N = ConverteNovo(j);
+                                c1N = ToCardNumberNew(i);
+                                c2N = ToCardNumberNew(j);
                                 for (int k1 = 0; k1 <= 39; k1 += 13)
                                 {
                                     for (int k2 = 13; k2 <= 39; k2 += 13)
@@ -664,10 +658,10 @@ namespace PokerCalculator
                 {
                     if (ArrayButton[i, j].Selected)
                     {
-                        c1 = Converte(j);
-                        c2 = Converte(i);
-                        c1N = ConverteNovo(j);
-                        c2N = ConverteNovo(i);
+                        c1 = ToCardNumber(j);
+                        c2 = ToCardNumber(i);
+                        c1N = ToCardNumberNew(j);
+                        c2N = ToCardNumberNew(i);
 
                         if (i > j) //suited          
                         {
@@ -681,10 +675,10 @@ namespace PokerCalculator
                         }
                         else if (i < j) //unsuited  - use of modulus to make code cleaner
                         {
-                            c1 = Converte(i);
-                            c2 = Converte(j);
-                            c1N = ConverteNovo(i);
-                            c2N = ConverteNovo(j);
+                            c1 = ToCardNumber(i);
+                            c2 = ToCardNumber(j);
+                            c1N = ToCardNumberNew(i);
+                            c2N = ToCardNumberNew(j);
                             for (int k1 = 0; k1 <= 39; k1 += 13)
                             {
                                 for (int k2 = 13; k2 <= 39; k2 += 13)
@@ -714,7 +708,7 @@ namespace PokerCalculator
                 }
             }
 
-            _selectionsize = index;
+            selectionSize = index;
         }
 
         private void RunMonteCarloSimulator()
@@ -783,8 +777,8 @@ namespace PokerCalculator
 
                 for (int i = 0; i < s.Length; i += 2)
                 {
-                    x = ConverteSuit(s.Substring(i + 1, 1));
-                    y = Converte(s.Substring(i, 1));
+                    x = ToSuitNumber(s.Substring(i + 1, 1));
+                    y = ToCardNumber(s.Substring(i, 1));
                     if (!HeroButton[x, y].Selected)
                         HeroButton[x, y].PerformClick();
                 }
@@ -822,8 +816,8 @@ namespace PokerCalculator
 
                 for (int i = 0; i < s.Length; i += 2)
                 {
-                    x = ConverteSuit(s.Substring(i + 1, 1));
-                    y = Converte(s.Substring(i, 1));
+                    x = ToSuitNumber(s.Substring(i + 1, 1));
+                    y = ToCardNumber(s.Substring(i, 1));
                     if (!BoardButton[x, y].Selected)
                         BoardButton[x, y].PerformClick();
                 }
