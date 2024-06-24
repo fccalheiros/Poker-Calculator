@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace Confidencial
 {
@@ -19,7 +15,7 @@ namespace Confidencial
         public Color MainColor
         {
             get { return _maincolor; }
-            set { _maincolor = value;  }
+            set { _maincolor = value; }
         }
 
         public int X
@@ -33,10 +29,10 @@ namespace Confidencial
         }
 
         public bool Selected
-        {  
+        {
             get { return _selected; }
-            set {  if (value) SelectButton(); else UnSelectButton(); _selected = value; }  	
-	    }
+            set { if (value) SelectButton(); else UnSelectButton(); _selected = value; }
+        }
 
         private string Converte(int c)
         {
@@ -51,7 +47,7 @@ namespace Confidencial
             }
         }
 
-        private string Suit(int s) 
+        private string Suit(int s)
         {
 
             switch (s)
@@ -64,7 +60,7 @@ namespace Confidencial
             }
         }
 
-        public PokerButton(int i, int j) : base() 
+        public PokerButton(int i, int j) : base()
         {
             _i = i;
             _j = j;
@@ -96,7 +92,7 @@ namespace Confidencial
             }
             else
             {
-                _maincolor = Color.FromArgb(172, 255, 163); 
+                _maincolor = Color.FromArgb(172, 255, 163);
             }
             BackColor = _maincolor;
             FlatAppearance.BorderSize = 2;
@@ -128,7 +124,7 @@ namespace Confidencial
         }
 
 
-        public void SelectButton() 
+        public void SelectButton()
         {
             if (!_selected) PerformClick();
         }
@@ -138,10 +134,11 @@ namespace Confidencial
             if (_selected) PerformClick();
         }
 
-        protected override void OnPaint(PaintEventArgs e) {
+        protected override void OnPaint(PaintEventArgs e)
+        {
             base.OnPaint(e);
 
-            if (! _selected)
+            if (!_selected)
             {
                 ControlPaint.DrawBorder(e.Graphics, ClientRectangle,
                     System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Outset,
@@ -157,7 +154,7 @@ namespace Confidencial
                     System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Inset,
                     System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Inset);
             }
-            
+
         }
 
         protected override void OnClick(EventArgs e)

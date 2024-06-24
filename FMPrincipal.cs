@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -15,7 +8,7 @@ namespace Confidencial
 {
     public partial class FMPrincipal : Form
     {
-       
+
         private int[,] SimulaGanhou;
         private int[,] SimulaPerdeu;
         private int[,] SimulaEmpate;
@@ -37,7 +30,7 @@ namespace Confidencial
         */
 
         //hands=["4 of a Kind", "Straight Flush", "Straight", "Flush", "High Card", "1 Pair", "2 Pair", "Royal Flush", "3 of a Kind", "Full House" ];
-        private readonly int[] forca = { 7, 8, 4, 5, 0, 1, 2, 9, 3 ,6 };
+        private readonly int[] forca = { 7, 8, 4, 5, 0, 1, 2, 9, 3, 6 };
 
 
         private void IniciaSimula()
@@ -54,10 +47,10 @@ namespace Confidencial
                 }
         }
 
-        private void SetResultadoGanhou(ref CARD [] p) 
+        private void SetResultadoGanhou(ref CARD[] p)
         {
-            SimulaGanhou[p[0].SeqNumber - 1, p[1].SeqNumber - 1]++;
-            SimulaGanhou[p[1].SeqNumber - 1, p[0].SeqNumber - 1]++;
+            SimulaGanhou[p[0].CardNumber - 1, p[1].CardNumber - 1]++;
+            SimulaGanhou[p[1].CardNumber - 1, p[0].CardNumber - 1]++;
         }
 
         private void SetResultadoGanhou(int c1, int c2)
@@ -71,15 +64,15 @@ namespace Confidencial
             SimulaPerdeu[c2 - 1, c1 - 1]++;
         }
 
-        private void SetResultadoPerdeu(ref CARD [] p)
+        private void SetResultadoPerdeu(ref CARD[] p)
         {
-            SimulaPerdeu[p[0].SeqNumber - 1, p[1].SeqNumber - 1]++;
-            SimulaPerdeu[p[1].SeqNumber - 1, p[0].SeqNumber - 1]++;
+            SimulaPerdeu[p[0].CardNumber - 1, p[1].CardNumber - 1]++;
+            SimulaPerdeu[p[1].CardNumber - 1, p[0].CardNumber - 1]++;
         }
         private void SetResultadoEmpate(ref CARD[] p)
         {
-            SimulaEmpate[p[0].SeqNumber - 1, p[1].SeqNumber - 1]++;
-            SimulaEmpate[p[1].SeqNumber - 1, p[0].SeqNumber - 1]++;
+            SimulaEmpate[p[0].CardNumber - 1, p[1].CardNumber - 1]++;
+            SimulaEmpate[p[1].CardNumber - 1, p[0].CardNumber - 1]++;
         }
 
         private void SetResultadoEmpate(int c1, int c2)
@@ -98,15 +91,15 @@ namespace Confidencial
             CARD c1 = new CARD();
             string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
 
-            c.SET(carta+1);
-            c1.SET(carta1+1);
+            c.SET(carta + 1);
+            c1.SET(carta1 + 1);
             s += "\r\n" + c.ToString() + c1.ToString() + " - " + SimulaGanhou[carta, carta1].ToString() + " : " + SimulaPerdeu[carta, carta1].ToString() + " : " + SimulaEmpate[carta, carta1].ToString();
             float g = ((float)(SimulaGanhou[carta, carta1]) / (float)Convert.ToDecimal(SimulaGanhou[carta, carta1] + SimulaPerdeu[carta, carta1] + SimulaEmpate[carta, carta1]));
             float p = ((float)(SimulaPerdeu[carta, carta1]) / (float)Convert.ToDecimal(SimulaGanhou[carta, carta1] + SimulaPerdeu[carta, carta1] + SimulaEmpate[carta, carta1]));
             float e = 1 - p - g;
             float equity = g + e / 2;
             s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
-                
+
             tb.Text = s;
         }
 
@@ -143,7 +136,7 @@ namespace Confidencial
         }
 
 
-        private void PrintResultado(TextBox tb,DateTime dt, ulong nSimul) 
+        private void PrintResultado(TextBox tb, DateTime dt, ulong nSimul)
         {
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.PercentDecimalDigits = 2;
@@ -151,16 +144,16 @@ namespace Confidencial
             CARD c1 = new CARD();
             string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
             for (int i = 0; i < 52; i++)
-                for (int j = i+1; j < 52; j++) 
-                { 
-                    c.SET(i + 1); 
+                for (int j = i + 1; j < 52; j++)
+                {
+                    c.SET(i + 1);
                     c1.SET(j + 1);
                     s += "\r\n" + c.ToString() + c1.ToString() + " - " + SimulaGanhou[i, j].ToString() + " : " + SimulaPerdeu[i, j].ToString() + " : " + SimulaEmpate[i, j].ToString();
-                    float g = ( (float) (SimulaGanhou[i, j]) / (float)Convert.ToDecimal(SimulaGanhou[i, j] + SimulaPerdeu[i, j] + SimulaEmpate[i,j]));
+                    float g = ((float)(SimulaGanhou[i, j]) / (float)Convert.ToDecimal(SimulaGanhou[i, j] + SimulaPerdeu[i, j] + SimulaEmpate[i, j]));
                     float p = ((float)(SimulaPerdeu[i, j]) / (float)Convert.ToDecimal(SimulaGanhou[i, j] + SimulaPerdeu[i, j] + SimulaEmpate[i, j]));
                     float e = 1 - p - g;
                     float equity = g + e / 2;
-                    s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) +  " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P",nfi); 
+                    s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
                 }
             tb.Text = s;
         }
@@ -168,7 +161,7 @@ namespace Confidencial
         public FMPrincipal()
         {
             InitializeComponent();
-            
+
         }
 
         private void testehandtwopairs()
@@ -179,7 +172,7 @@ namespace Confidencial
 
             TB01.Text = "";
             TB01.Text += "Hand: " + hand.ToString();
-            TB01.Text += "\r\nJogo: " + HoldemPokerHand.GetHandName(hand.RetornaJogo(ref c)) + " : ";
+            TB01.Text += "\r\nJogo: " + HoldemPokerHand.GetHandName(hand.ReturnPokerHand(ref c)) + " : ";
             for (int j = 0; j < 5; j++) TB01.Text += c[j].ToString() + " - ";
             //  5c 9e 5e 4c tc Qo 4o
         }
@@ -217,13 +210,14 @@ namespace Confidencial
             {
                 c1.SET(i);
                 c2.SetValue(c1.ToString());
-                if (c1.SeqNumber != c2.SeqNumber)
+                if (c1.CardNumber != c2.CardNumber)
                     return false;
             }
             return true;
         }
 
-        private bool TestaTodosStraightFlush() {
+        private bool TestaTodosStraightFlush()
+        {
 
             CARD[] c = new CARD[5];
             CARD carta = new CARD();
@@ -232,20 +226,20 @@ namespace Confidencial
             HoldemPokerHand hand = new HoldemPokerHand();
             s = "Ac Kc Qc Jc 5s Tc 8s";
             hand.SetHand(s);
-            if (hand.RetornaJogo(ref c) != PokerHands.RoyalStraightFlush) return false;
-            s = "Ad Kd Qd 8s 5s Jd Td"; 
+            if (hand.ReturnPokerHand(ref c) != PokerHands.RoyalStraightFlush) return false;
+            s = "Ad Kd Qd 8s 5s Jd Td";
             hand.SetHand(s);
-            if (hand.RetornaJogo(ref c) != PokerHands.RoyalStraightFlush) return false;
-            s = "As Ks Qs Js 5d Ts 8s"; 
+            if (hand.ReturnPokerHand(ref c) != PokerHands.RoyalStraightFlush) return false;
+            s = "As Ks Qs Js 5d Ts 8s";
             hand.SetHand(s);
-            if (hand.RetornaJogo(ref c) != PokerHands.RoyalStraightFlush) return false;
-            s = "Ad Kd Qd Jd 5s Td 8s"; 
+            if (hand.ReturnPokerHand(ref c) != PokerHands.RoyalStraightFlush) return false;
+            s = "Ad Kd Qd Jd 5s Td 8s";
             hand.SetHand(s);
-            if (hand.RetornaJogo(ref c) != PokerHands.RoyalStraightFlush) return false;
+            if (hand.ReturnPokerHand(ref c) != PokerHands.RoyalStraightFlush) return false;
 
             s = "4c 5c 6c 7c 8c 5d 9d";
             hand.SetHand(s);
-            if (hand.RetornaJogo(ref c) != PokerHands.StraightFlush) return false;
+            if (hand.ReturnPokerHand(ref c) != PokerHands.StraightFlush) return false;
 
             for (byte k = 0; k < 4; k++)
             {
@@ -254,15 +248,15 @@ namespace Confidencial
                     s = "";
                     for (byte j = i; j < i + 5; j++)
                     {
-                        carta.SET( Convert.ToByte(j + 13*k));
+                        carta.SET(Convert.ToByte(j + 13 * k));
                         s += carta.ToString();
                     }
-                    carta.SET( Convert.ToByte(i + 13 * ((k + 1) % 4)));
+                    carta.SET(Convert.ToByte(i + 13 * ((k + 1) % 4)));
                     s += carta.ToString();
-                    carta.SET(Convert.ToByte(i + 1+ 13 * ((k + 1) % 4)));
+                    carta.SET(Convert.ToByte(i + 1 + 13 * ((k + 1) % 4)));
                     s += carta.ToString();
                     hand.SetHand(s);
-                    if (hand.RetornaJogo(ref c) != PokerHands.StraightFlush) 
+                    if (hand.ReturnPokerHand(ref c) != PokerHands.StraightFlush)
                         return false;
                 }
             }
@@ -298,14 +292,14 @@ namespace Confidencial
                                     {
 
                                         cont++;
-                                        pe.RankPokerHandSEVENCards( ref i );
+                                        pe.RankPokerHandSEVENCards(ref i);
                                         //hand.SetHand(i);
-                                        //PokerHands h = hand.RetornaJogo(ref c);
+                                        //PokerHands h = hand.ReturnPokerHand(ref c);
                                         contador[pe.HandPower]++;
 
                                         //if ( pe.HandPower != (int) h) {
-                                         //  pe.RankPokerHandSEVENCards(ref i);
-                                         //}
+                                        //  pe.RankPokerHandSEVENCards(ref i);
+                                        //}
 
                                         if (pe.HandPower == 9)
                                         {
@@ -381,20 +375,20 @@ namespace Confidencial
                                         //    strength = PEval.ProcessCardSet(cardset);
                                         //   game = PEval.ReturnHandPower(strength);
                                         // }
-/*
-                                        if (game == 9)
-                                        {
-                                            //TB01.Text += "\r\n" + hand.ToString() + " : " ;
-                                            //for (int j = 0; j < 5; j++) TB01.Text += c[j].ToString() + " - ";
-                                            per = (Convert.ToDecimal(cont) / (decimal)133784560);
-                                            dtf = DateTime.Now;
-                                            TB02.Text = cont.ToString("N", nfi) + " - " + per.ToString("P", nfi) + " - " + (dtf - dt).ToString();
+                                        /*
+                                                                                if (game == 9)
+                                                                                {
+                                                                                    //TB01.Text += "\r\n" + hand.ToString() + " : " ;
+                                                                                    //for (int j = 0; j < 5; j++) TB01.Text += c[j].ToString() + " - ";
+                                                                                    per = (Convert.ToDecimal(cont) / (decimal)133784560);
+                                                                                    dtf = DateTime.Now;
+                                                                                    TB02.Text = cont.ToString("N", nfi) + " - " + per.ToString("P", nfi) + " - " + (dtf - dt).ToString();
 
-                                            //TB01.SelectionStart = TB01.TextLength;
-                                            //TB01.ScrollToCaret();
-                                            Application.DoEvents();
-                                        }
-*/
+                                                                                    //TB01.SelectionStart = TB01.TextLength;
+                                                                                    //TB01.ScrollToCaret();
+                                                                                    Application.DoEvents();
+                                                                                }
+                                        */
                                     }
             TB01.Text = "\r\n" + cont.ToString();
             TB01.Text += "\r\n";
@@ -416,7 +410,7 @@ namespace Confidencial
 
         private void TestaTodasCombinaçõesNovissimoBIT()
         {
-            int[] contador; 
+            int[] contador;
             int[] resultados = { 23294460, 58627800, 31433400, 6461620, 6180020, 4047644, 3473184, 224848, 37260, 4324 };
 
             int cont = 133784560;
@@ -431,7 +425,7 @@ namespace Confidencial
             TB01.Text += "\r\n Início Testa Combinaçoes: " + dt.ToString();
 
             contador = PEval.EvaluateAllCombinations();
- 
+
             TB01.Text = "\r\n" + cont.ToString();
             TB01.Text += "\r\n";
             decimal acum = 0;
@@ -461,15 +455,15 @@ namespace Confidencial
             int index;
             DateTime dtIni = DateTime.Now;
             HoldemPokerHand hhhh = new HoldemPokerHand();
-            int [] num = { 0, 0 ,5 ,5, 10 };
+            int[] num = { 0, 0, 5, 5, 10 };
             int[] suit = { 1, 2, 2, 4, 8 };
-            int[] board = { 1, 14, 15, 28, 39, 50, 51};
+            int[] board = { 1, 14, 15, 28, 39, 50, 51 };
             ulong totSimul = Convert.ToUInt64(TBSimul.Text);
 
             hhhh.SetHand(board);
             TB01.Text = hhhh.ToString();
 
-            for (ulong i = 0;  i < totSimul ; i++)
+            for (ulong i = 0; i < totSimul; i++)
                 RankPokerHand(num, suit, out hand, out seq, out flush, out index);
             TB02.Text = (DateTime.Now - dtIni).ToString();
         }
@@ -477,7 +471,7 @@ namespace Confidencial
         {
             int[] contador = new int[Convert.ToInt32(PokerHands.RoyalStraightFlush) + 1];
             for (int j = 0; j <= Convert.ToInt32(PokerHands.RoyalStraightFlush); j++) contador[j] = 0;
-            int[] resultados = { 23294460, 58627800, 31433400, 6461620, 6180020, 4047644, 3473184, 224848, 37260, 4324  };
+            int[] resultados = { 23294460, 58627800, 31433400, 6461620, 6180020, 4047644, 3473184, 224848, 37260, 4324 };
 
             int cont = 0;
             decimal per;
@@ -490,32 +484,32 @@ namespace Confidencial
             DateTime dtf = DateTime.Now;
             TB01.Text += "\r\n Início Testa Combinaçoes: " + dt.ToString();
             for (i[0] = 1; i[0] <= 52 - 6; i[0]++)
-                for (i[1] = i[0]+1; i[1] <= 52 - 5; i[1]++)
-                    for (i[2] = i[1]+1; i[2] <= 52 - 4; i[2]++)
-                        for (i[3] =i[2]+1; i[3] <= 52 - 3; i[3]++)
-                            for (i[4] = i[3]+1; i[4] <= 52 - 2; i[4]++)
-                                for (i[5] = i[4]+1; i[5] <= 52 - 1; i[5]++)
-                                    for (i[6] = i[5]+1; i[6] <= 52 - 0; i[6]++) 
+                for (i[1] = i[0] + 1; i[1] <= 52 - 5; i[1]++)
+                    for (i[2] = i[1] + 1; i[2] <= 52 - 4; i[2]++)
+                        for (i[3] = i[2] + 1; i[3] <= 52 - 3; i[3]++)
+                            for (i[4] = i[3] + 1; i[4] <= 52 - 2; i[4]++)
+                                for (i[5] = i[4] + 1; i[5] <= 52 - 1; i[5]++)
+                                    for (i[6] = i[5] + 1; i[6] <= 52 - 0; i[6]++)
                                     {
                                         cont++;
                                         hand.SetHand(i);
-                                        PokerHands h = hand.RetornaJogo(ref c);
+                                        PokerHands h = hand.ReturnPokerHand(ref c);
                                         contador[Convert.ToInt32(h)]++;
-                                        
+
                                         if (h == PokerHands.StraightFlush)
                                         {
                                             //TB01.Text += "\r\n" + hand.ToString() + " : " ;
                                             //for (int j = 0; j < 5; j++) TB01.Text += c[j].ToString() + " - ";
                                             per = (Convert.ToDecimal(cont) / (decimal)133784560);
                                             dtf = DateTime.Now;
-                                            TB02.Text = cont.ToString("N",nfi) + " - " + per.ToString("P", nfi) + " - " + (dtf - dt).ToString();
-                                            
+                                            TB02.Text = cont.ToString("N", nfi) + " - " + per.ToString("P", nfi) + " - " + (dtf - dt).ToString();
+
                                             //TB01.SelectionStart = TB01.TextLength;
                                             //TB01.ScrollToCaret();
                                             Application.DoEvents();
                                         }
                                     }
-            TB01.Text = "\r\n" + cont.ToString(); 
+            TB01.Text = "\r\n" + cont.ToString();
             TB01.Text += "\r\n";
             decimal acum = 0;
             bool correto = true;
@@ -531,17 +525,18 @@ namespace Confidencial
             TB01.Text += "Funcionou? : " + correto.ToString() + "\r\n";
             TB01.Text += "Tempo Total: " + (dtf - dt).ToString();
         }
-        
 
-        private void TestaRandomGames() {
+
+        private void TestaRandomGames()
+        {
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.NumberDecimalDigits = 0;
             Random R = new Random(DateTime.Now.Millisecond);
             PokerEval pe = new PokerEval();
             PokerEval pe1 = new PokerEval();
-            HoldemPokerHand hand =new HoldemPokerHand();
+            HoldemPokerHand hand = new HoldemPokerHand();
             HoldemPokerHand hand1 = new HoldemPokerHand();
-            CARD[] c = new CARD [5];
+            CARD[] c = new CARD[5];
             CARD[] c1 = new CARD[5];
             CARD[] p;
             CARD[] p1;
@@ -569,13 +564,13 @@ namespace Confidencial
 
                 pe.RankPokerHandSEVENCards(ref cards);
                 pe1.RankPokerHandSEVENCards(ref cards1);
-                
-                h = hand.RetornaJogo(ref c);
-                h1 = hand1.RetornaJogo(ref c1);
+
+                h = hand.ReturnPokerHand(ref c);
+                h1 = hand1.ReturnPokerHand(ref c1);
 
                 int res1 = pe.HandCompare7Cards(pe1);
 
-                if ( res != res1 )
+                if (res != res1)
                 {
                     res = hand.Compare(hand1);
                     res1 = pe.HandCompare7Cards(pe1);
@@ -608,10 +603,10 @@ namespace Confidencial
                     Application.DoEvents();
                 }
             }
-            PrintResultado(TB01,dtini,nSimul);
-            nfi= new CultureInfo("pt-BR", false).NumberFormat;
+            PrintResultado(TB01, dtini, nSimul);
+            nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.NumberDecimalDigits = 0;
-            TB02.Text = nSimul.ToString("N",nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
+            TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
 
         }
 
@@ -639,7 +634,7 @@ namespace Confidencial
 
                 if (res == 0)
                 {
-                    SetResultadoEmpate(pe.Cards[5],pe.Cards[6]);
+                    SetResultadoEmpate(pe.Cards[5], pe.Cards[6]);
                     SetResultadoEmpate(pe1.Cards[5], pe1.Cards[6]);
                 }
                 else if (res == 1)
@@ -654,7 +649,7 @@ namespace Confidencial
                     SetResultadoPerdeu(pe.Cards[5], pe.Cards[6]);
                 }
 
-                if ( (i & mask) == mask )
+                if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
                     Application.DoEvents();
@@ -676,11 +671,11 @@ namespace Confidencial
             DateTime dtini = DateTime.Now;
             IniciaSimula();
 
-            const ulong mask = (1 << 20) -1;
+            const ulong mask = (1 << 20) - 1;
             ulong nSimul = Convert.ToUInt64(TBSimul.Text);
 
-            int carta1 = CARD.ToInt(TBPocket.Text.Substring(0,2));
-            int carta2 = CARD.ToInt(TBPocket.Text.Substring(3,2));
+            int carta1 = CARD.ToInt(TBPocket.Text.Substring(0, 2));
+            int carta2 = CARD.ToInt(TBPocket.Text.Substring(3, 2));
             c[0] = carta1;
             c[1] = carta2;
 
@@ -721,7 +716,7 @@ namespace Confidencial
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-            PrintResultado(TB01, dtini, nSimul,carta1,carta2);
+            PrintResultado(TB01, dtini, nSimul, carta1, carta2);
 
         }
 
@@ -794,7 +789,7 @@ namespace Confidencial
             Random R = new Random(DateTime.Now.Millisecond);
 
             DateTime dtini = DateTime.Now;
- 
+
 
             const ulong mask = (1 << 20) - 1;
             ulong nSimul = Convert.ToUInt64(TBSimul.Text);
@@ -890,7 +885,7 @@ namespace Confidencial
 
                 //PokerEval.RandomHand(c, Program.FMDistribution.CardsSelection, Program.FMDistribution.SelectionSize, R);
 
-                
+
                 PEval.RandomHandRange(herohand, 0, 5, Program.FMDistribution.RangeSelection, Program.FMDistribution.SelectionSize, out board, out villainhand, R);
                 heroResult = PEval.ProcessCardSet(herohand | board);
                 villainResult = PEval.ProcessCardSet(villainhand | board);
@@ -918,7 +913,7 @@ namespace Confidencial
         {
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.NumberDecimalDigits = 0;
-            
+
 
             DateTime dtini = DateTime.Now;
 
@@ -930,12 +925,12 @@ namespace Confidencial
             ulong herohand = PEval.ConvertStringToCardSet(TBPocket.Text);
             ulong currentBoard = PEval.ConvertStringToCardSet(TBBoard.Text);
             int boardCardsLeft = 5 - (TBBoard.Text.Replace(" ", "").Length / 2);
-            ulong [] villainhand;
+            ulong[] villainhand;
             ulong board;
 
             int heroResult;
 
- 
+
 
             int nVillains = 2;
             int bestvillainResult;
@@ -968,7 +963,7 @@ namespace Confidencial
 
                 for (int v = 0; v < nVillains; v++)
                 {
-                    villainResult[v] =  PEval.ProcessCardSet(villainhand[v] | board);
+                    villainResult[v] = PEval.ProcessCardSet(villainhand[v] | board);
                     if (villainResult[v] > bestvillainResult) bestvillainResult = villainResult[v];
                 }
 
@@ -988,7 +983,7 @@ namespace Confidencial
                         }
 
                     }
-                    eqTie += (float)(1 / ((float)nTies+1));
+                    eqTie += (float)(1 / ((float)nTies + 1));
                 }
 
                 if ((i & mask) == mask)
@@ -998,39 +993,39 @@ namespace Confidencial
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-            PrintResultado(TB01, dtini, nSimul, TBPocket.Text, win, lost, tie,eqTie);
+            PrintResultado(TB01, dtini, nSimul, TBPocket.Text, win, lost, tie, eqTie);
 
         }
 
-        private void TestaThread() 
+        private void TestaThread()
         {
             w = 0; t = 0; l = 0; et = 0;
             DateTime dtini = DateTime.Now;
 
             ulong nSimul = Convert.ToUInt64(TBSimul.Text);
-            
+
             ulong herohand = PEval.ConvertStringToCardSet(TBPocket.Text);
             ulong currentBoard = PEval.ConvertStringToCardSet(TBBoard.Text);
             int boardCardsLeft = 5 - (TBBoard.Text.Replace(" ", "").Length / 2);
             int nThreads = 8;
-            ulong n = nSimul / (ulong) nThreads;
+            ulong n = nSimul / (ulong)nThreads;
 
             PokerMonteCarloServer[] server = new PokerMonteCarloServer[nThreads];
-            Thread[] PokerServer = new Thread[nThreads]; 
+            Thread[] PokerServer = new Thread[nThreads];
 
-            for (int i = 0; i < nThreads; i ++)
+            for (int i = 0; i < nThreads; i++)
             {
                 server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, new simulCallBack(ResultCallback));
                 PokerServer[i] = new Thread(new ThreadStart(server[i].Simula));
                 PokerServer[i].Start();
             }
 
-            for (int i = 0; i < nThreads; i++ )
+            for (int i = 0; i < nThreads; i++)
             {
                 PokerServer[i].Join();
             }
 
-            PrintResultado(TB01, dtini, (w+l+t), TBPocket.Text, w, l, t, et);
+            PrintResultado(TB01, dtini, (w + l + t), TBPocket.Text, w, l, t, et);
 
         }
 
@@ -1075,7 +1070,7 @@ namespace Confidencial
 
         }
 
-        private void TestaThreadRangeN() 
+        private void TestaThreadRangeN()
         {
             w = 0; t = 0; l = 0; et = 0;
             DateTime dtini = DateTime.Now;
@@ -1140,7 +1135,8 @@ namespace Confidencial
 
             ulong c0, c1;
             for (c0 = 1; c0 < CONSTANTS.ONE << 13; c0 <<= 1)
-                for (c1 = c0 << 1; c1 < CONSTANTS.ONE << 26; c1 <<= 1) {
+                for (c1 = c0 << 1; c1 < CONSTANTS.ONE << 26; c1 <<= 1)
+                {
                     {
                         w = 0; t = 0; l = 0; et = 0;
                         herohand = c0 | c1;
@@ -1158,11 +1154,11 @@ namespace Confidencial
                         {
                             PokerServer[i].Join();
                         }
-                        Console.WriteLine(PEval.ToString(herohand) + " " + (((float)w + (float)et)/(float)nSimul).ToString());
+                        Console.WriteLine(PEval.ToString(herohand) + " " + (((float)w + (float)et) / (float)nSimul).ToString());
                     }
                 }
 
-           // PrintResultado(TB01, dtini, (w + l + t), TBPocket.Text, w, l, t, et);
+            // PrintResultado(TB01, dtini, (w + l + t), TBPocket.Text, w, l, t, et);
 
         }
 
@@ -1178,7 +1174,7 @@ namespace Confidencial
 
             const ulong mask = (1 << 20) - 1;
             ulong nSimul = Convert.ToUInt64(TBSimul.Text);
-            ulong win = 0, tie = 0 , lost = 0;
+            ulong win = 0, tie = 0, lost = 0;
 
             ulong herohand = PEval.ConvertStringToCardSet(TBPocket.Text);
 
@@ -1214,8 +1210,8 @@ namespace Confidencial
 
                 int res = pe.HandCompare7Cards(pe1);
                 int res2 = (heroResult > villainResult ? 1 : heroResult < villainResult ? -1 : 0);
-                
-                if (res != res2) 
+
+                if (res != res2)
                 {
                     heroResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                     c[0] = c[7];
@@ -1253,20 +1249,20 @@ namespace Confidencial
         private void PoeTextoLabel(HoldemPokerHand hand)
         {
 
-            CARD [] c = new CARD[5];
-            CARD [] c2 = new CARD[5];
+            CARD[] c = new CARD[5];
+            CARD[] c2 = new CARD[5];
             PokerHands h;
 
             TB01.Text += "\r\n" + hand.ToString();
             TB01.Text += "\r\n" + hand.GetHandString();
-            TB01.Text += "\r\n" + hand.GetNaipesString();
+            TB01.Text += "\r\n" + hand.GetSuitsString();
             TB01.Text += "\r\nSequência? : " + hand.CheckStraight(ref c).ToString() + " - " + c[0].ToString();
             TB01.Text += "\r\nFlush? : " + hand.CheckFlush(ref c).ToString() + " - " + c[0].ToString();
             TB01.Text += "\r\nFour? : " + hand.CheckFour(ref c).ToString() + " - " + c[0].ToString() + " - " + c[1].ToString();
-            TB01.Text += "\r\nTrips? : " + hand.CheckTrips(ref c).ToString() + " - " + c[0].ToString(); 
+            TB01.Text += "\r\nTrips? : " + hand.CheckTrips(ref c).ToString() + " - " + c[0].ToString();
             TB01.Text += "\r\nPair? : " + hand.CheckPair(ref c).ToString() + " - " + c[0].ToString() + " - " + c[1].ToString();
 
-            h = hand.RetornaJogo(ref c);
+            h = hand.ReturnPokerHand(ref c);
             TB01.Text += "\r\nJogo : " + HoldemPokerHand.GetHandName(h);
             for (int i = 0; i < 5; i++) TB01.Text += " - " + c[i].ToString();
 
@@ -1280,7 +1276,7 @@ namespace Confidencial
             {
 
                 case 0: TestaRandomGames(); break;
-                case 1: TestaRandomGames2() ; break;
+                case 1: TestaRandomGames2(); break;
                 case 2: TestaTodasCombinações(); break;
                 case 3: TestaTodasCombinaçõesNovo(); break;
                 case 4: StressPokerEval(); break;
@@ -1310,7 +1306,7 @@ namespace Confidencial
         {
             int n = Convert.ToInt32(TBPocket.Text);
             TBPocket.Text = PEval.lastbit(n).ToString();
-            
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -1334,9 +1330,9 @@ namespace Confidencial
             else
                 TB01.Text += "Royal x Straight: " + hand.Compare(hand1).ToString() + "\r\n";
             TB01.Text += hand.ToString() + "\r\n";
-            TB01.Text += HoldemPokerHand.GetHandName(hand.RetornaJogo(ref c)) + "\r\n";
+            TB01.Text += HoldemPokerHand.GetHandName(hand.ReturnPokerHand(ref c)) + "\r\n";
             TB01.Text += hand1.ToString() + "\r\n";
-            TB01.Text += HoldemPokerHand.GetHandName(hand1.RetornaJogo(ref c)) + "\r\n";
+            TB01.Text += HoldemPokerHand.GetHandName(hand1.ReturnPokerHand(ref c)) + "\r\n";
 
 
             // Four x Four
@@ -1371,7 +1367,7 @@ namespace Confidencial
 
         private void button3_Click(object sender, EventArgs e)
         {
-            int[] contador = new int[Convert.ToInt32(PokerHands.RoyalStraightFlush)+1];
+            int[] contador = new int[Convert.ToInt32(PokerHands.RoyalStraightFlush) + 1];
             for (int i = 0; i <= Convert.ToInt32(PokerHands.RoyalStraightFlush); i++) contador[i] = 0;
 
             Random R = new Random(DateTime.Now.Millisecond);
@@ -1388,9 +1384,9 @@ namespace Confidencial
                 hand.SetRandomHand(1, 5, R);
                 //hand.SetHand("9E QE 8E JC 7O TE AE");
 
-                PokerHands h = hand.RetornaJogo(ref c);
+                PokerHands h = hand.ReturnPokerHand(ref c);
                 contador[Convert.ToInt32(h)]++;
-                    
+
                 if (h == PokerHands.RoyalStraightFlush)
                 {
                     //TB01.Text += "\r\n" + hand.ToString() + " : " ;
@@ -1403,20 +1399,20 @@ namespace Confidencial
 
 
                 // TB01.Text += "\r\nRandom Hand: " + hand.ToString();
-                // TB01.Text += "\r\nJogo: " + HoldemPokerHand.GetHandName(hand.RetornaJogo(ref c)) + " : ";
+                // TB01.Text += "\r\nJogo: " + HoldemPokerHand.GetHandName(hand.ReturnPokerHand(ref c)) + " : ";
                 //for (int j = 0; j < 5; j++) TB01.Text += c[j].ToString() + " - ";
             }
 
             TB01.Text += "\r\n";
             decimal acum = 0;
-            for (PokerHands i = PokerHands.RoyalStraightFlush; i >=0 ; i--)
+            for (PokerHands i = PokerHands.RoyalStraightFlush; i >= 0; i--)
             {
                 int vezes = contador[Convert.ToInt32(i)];
                 decimal per = Convert.ToDecimal(vezes) / Convert.ToDecimal(totHands);
                 acum += per;
-                TB01.Text += HoldemPokerHand.GetHandName(i) + " - " + vezes.ToString() + " - " + per.ToString("P",nfi) + " - " + acum.ToString("P", nfi) + "\r\n";
+                TB01.Text += HoldemPokerHand.GetHandName(i) + " - " + vezes.ToString() + " - " + per.ToString("P", nfi) + " - " + acum.ToString("P", nfi) + "\r\n";
             }
-           
+
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -1431,7 +1427,7 @@ namespace Confidencial
         private void TestaVariasHands()
         {
             // { 7, 8, 4, 5, 6 };
-            int[] num = { 0, 1, 1, 1, 1 }; 
+            int[] num = { 0, 1, 1, 1, 1 };
             int[] suit = { 1, 2, 4, 8, 1 };
 
             TestaRankPokerHand(num, suit);
@@ -1444,7 +1440,7 @@ namespace Confidencial
                 }
                 TestaRankPokerHand(num, suit);
             }
-            
+
         }
 
         private void TestaUmaHand5Cartas()
@@ -1466,21 +1462,21 @@ namespace Confidencial
 
             //int[] p2 = { 13, 14, 12, 25, 38, 51, 01 };
 
-            int[] p2 = { 01, 12, 25, 38, 14 , 13, 51  };
+            int[] p2 = { 01, 12, 25, 38, 14, 13, 51 };
 
             int[] p3 = { 12, 25, 38, 14, 01, 15, 27 };
 
             RankPokerHand(p, out ulong hand, out int seq, out int flush, out int index);
             PrintHand(hand, seq, flush, index);
 
-            RankPokerHand(p2, out  hand, out  seq, out  flush, out  index);
+            RankPokerHand(p2, out hand, out seq, out flush, out index);
             PrintHand(hand, seq, flush, index);
 
-            RankPokerHand(p3, out  hand, out  seq, out  flush, out  index);
+            RankPokerHand(p3, out hand, out seq, out flush, out index);
             PrintHand(hand, seq, flush, index);
         }
 
-        private void TestaRankPokerHand( int [] num, int [] suit)
+        private void TestaRankPokerHand(int[] num, int[] suit)
         {
 
             RankPokerHand(num, suit, out ulong hand, out int seq, out int flush, out int index);
@@ -1491,7 +1487,7 @@ namespace Confidencial
         {
             int cont = 0;
             //TB01.Text += "\r\n HAND: " + hand.ToString();
-            TB01.Text += "\r\n Mão: " + HoldemPokerHand.GetHandName((PokerHands) index);
+            TB01.Text += "\r\n Mão: " + HoldemPokerHand.GetHandName((PokerHands)index);
 
             string s = "";
             ulong handAux = hand;
@@ -1512,22 +1508,22 @@ namespace Confidencial
                 s = (seqAux & 1).ToString() + s;
                 seqAux >>= 1;
             }
-            TB01.Text += "\r\nSequência: " + s +  " = " + seq.ToString();
+            TB01.Text += "\r\nSequência: " + s + " = " + seq.ToString();
             TB01.Text += "\r\nFlush: " + flush.ToString();
 
             TB01.Text += "\r\n Divisão sequencia: " + (seq / (seq & -seq)).ToString();
             //TB01.Text += "\r\n Divisão minha: " + (seq & 15).ToString();
             TB01.Text += "\r\n ---------------------------------------------------";
-          
+
         }
 
-        private void RankPokerHand(int[] cartas, out ulong hand, out int seq, out int flush, out int index) 
+        private void RankPokerHand(int[] cartas, out ulong hand, out int seq, out int flush, out int index)
         {
-            //(seqnumber - 1) % 13
-            // (seqnumber - valor) / 13
+            //(cardNumber - 1) % 13
+            // (cardNumber - valor) / 13
 
             int[] num = new int[5];
-            int [] suit = new int[5];
+            int[] suit = new int[5];
             int[] i = new int[5];
             int[] cartasnum = new int[7];
             int[] cartassuit = new int[7];
@@ -1538,12 +1534,12 @@ namespace Confidencial
             ulong besthand = 0;
             int bestindex = -1;
 
-            for ( int j = 0; j < 7; j ++) 
+            for (int j = 0; j < 7; j++)
             {
-                cartasnum[j] = ( cartas[j]-1 ) % 13 - 1;
+                cartasnum[j] = (cartas[j] - 1) % 13 - 1;
                 if (cartasnum[j] == -1) cartasnum[j] = 12;
-                cartassuit[j] = 1 << ((cartas[j]-1) / 13);
-             }
+                cartassuit[j] = 1 << ((cartas[j] - 1) / 13);
+            }
 
             for (i[0] = 0; i[0] < 3; i[0]++)
             {
@@ -1579,8 +1575,8 @@ namespace Confidencial
                 }
             }
             hand = besthand;
-            index = bestindex;                      
-                              
+            index = bestindex;
+
         }
 
         private void RankPokerHand(int[] num, int[] suit, out ulong hand, out int seq, out int flush, out int index)
@@ -1588,8 +1584,8 @@ namespace Confidencial
 
             // falta resolver a comparação do A2345 x outras sequencias
 
-            hand  = 0;
-            seq   = 0;
+            hand = 0;
+            seq = 0;
             flush = 15;
 
             int shift;
@@ -1606,7 +1602,7 @@ namespace Confidencial
             //hands=["4 of a Kind", "Straight Flush", "Straight", "Flush", "High Card", "1 Pair", "2 Pair", "Royal Flush", "3 of a Kind", "Full House" ];
 
             index = (int)(hand % 15);
-            index -= (seq / (seq & -seq) == 31) | (seq == 4111) ? 3 :  1;
+            index -= (seq / (seq & -seq) == 31) | (seq == 4111) ? 3 : 1;
             index -= (flush > 0 ? 1 : 0) * (seq == 7936 ? -5 : 1);
 
             // zerar o bit 48 para poder comparar sequencias A2345  com as demais
@@ -1630,7 +1626,7 @@ namespace Confidencial
             {
                 Program.FMDistribution.Focus();
             }
-         
+
         }
 
         private void RandomDistTest()
@@ -1641,11 +1637,11 @@ namespace Confidencial
             for (int i = 0; i < 4; i++) c[i] = 0;
 
 
-            for ( int i = 0; i < Convert.ToInt32(TBSimul.Text); i++)
+            for (int i = 0; i < Convert.ToInt32(TBSimul.Text); i++)
             {
                 int next = R.Next(0, 4);
                 //while (next == 2 || next == 3)
-                 //   next = R.Next(0, 4);
+                //   next = R.Next(0, 4);
                 c[next]++;
             }
 

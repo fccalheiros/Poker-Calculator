@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Confidencial
 {
@@ -32,7 +28,7 @@ namespace Confidencial
 
         //52 bit number each representing a card on the deck
         //From left to right 2-A  and Clubs, Hearts, Spades, Diamonds
-        private ulong _cardSet;
+        //private ulong _cardSet;
 
         //adapted from pokerstove gitlab project
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -40,19 +36,19 @@ namespace Confidencial
         {
             // subset - 13 bits from right to left 2 - A
             int c;
-            for ( c = 0; subset > 0; c++)
+            for (c = 0; subset > 0; c++)
             {
-                subset &= subset-1;
+                subset &= subset - 1;
             }
             return c;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int  cleanLSB(int subset)
+        public static int cleanLSB(int subset)
         {
             // subset - 13 bits from right to left 2 - A
 
-            return subset & (subset-1);
+            return subset & (subset - 1);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -69,9 +65,9 @@ namespace Confidencial
             // subset - 13 bits from right to left 2 - A
             int c = subset;
 
-            for (int i = 0; i < times; i++) 
+            for (int i = 0; i < times; i++)
             {
-                c &= c-1;
+                c &= c - 1;
             }
             return c;
         }
@@ -86,7 +82,7 @@ namespace Confidencial
         public static int straight(int subset)
         {
             //replicate A at the end to find lower sequences
-            subset = ( (subset & 0b1000000000000) >> 12 ) | (subset << 1);
+            subset = ((subset & 0b1000000000000) >> 12) | (subset << 1);
 
             //subset &= subset << 1;
             subset &= subset << 2;
@@ -102,7 +98,7 @@ namespace Confidencial
             subset |= subset >> 2;
             subset |= subset >> 4;
             subset |= subset >> 8;
-            
+
             return subset;
         }
 
@@ -120,7 +116,7 @@ namespace Confidencial
         public static int flush2(int C, int H, int S, int D, out int bitcc)
         {
             bitcc = bitCount(C);
-            
+
             if (bitcc >= 5) return C;
             if (bitcc > 2) return 0;
 
@@ -137,7 +133,7 @@ namespace Confidencial
 
             bitcc = 7 - acum - bitcc;
             return D;
-            
+
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -157,12 +153,12 @@ namespace Confidencial
             int st, fl, stfl;
 
 
-            C = (int)((cardSet)       & 0b1111111111111);
+            C = (int)((cardSet) & 0b1111111111111);
             H = (int)((cardSet >> 13) & 0b1111111111111);
             S = (int)((cardSet >> 26) & 0b1111111111111);
             D = (int)((cardSet >> 39) & 0b1111111111111);
 
-            CHSD_OR = C | H | S | D ;
+            CHSD_OR = C | H | S | D;
             cc = bitCount(CHSD_OR);
 
             if (cc >= 5)
@@ -176,7 +172,7 @@ namespace Confidencial
                     if (stfl > 0)
                     {
                         // second term treats royal flush
-                        return CONSTANTS.STRAIGHTFLUSH | ( (stfl & 0x1000) << 14) | stfl;
+                        return CONSTANTS.STRAIGHTFLUSH | ((stfl & 0x1000) << 14) | stfl;
                     }
                 }
                 if (fl > 0)
@@ -190,8 +186,8 @@ namespace Confidencial
 
                 // Pair
                 if (cc == 6)
-                { 
-                    int pair = ( C ^ H ^ S ^ D ) ^ CHSD_OR;
+                {
+                    int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
                     return CONSTANTS.PAIR | pair << 13 | cleanLSB2(pair ^ CHSD_OR);
                 }
 
@@ -206,7 +202,7 @@ namespace Confidencial
                 if (cc == 5)
                 {
                     //C & H & S | C & H & D | C & S & D | H & S & D;
-                    int trips =   (C & H & (S | D)) | (S & D  & (C | H));
+                    int trips = (C & H & (S | D)) | (S & D & (C | H));
                     if (trips > 0) return CONSTANTS.TRIPS | trips << 13 | cleanLSB2(trips ^ CHSD_OR);
                     int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
                     return CONSTANTS.TWOPAIR | pair << 13 | cleanLSB2(pair ^ CHSD_OR);
@@ -225,7 +221,7 @@ namespace Confidencial
 
                 int trips = (C & H & (S | D)) | (S & D & (C | H));
                 int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
-                if (trips > 0 ) return CONSTANTS.FULLHOUSE | trips << 13 | pair;
+                if (trips > 0) return CONSTANTS.FULLHOUSE | trips << 13 | pair;
 
                 int hightwopair = cleanLSB(pair);
                 return CONSTANTS.TWOPAIR | hightwopair << 13 | cleanLSB(hightwopair ^ CHSD_OR);
@@ -246,9 +242,9 @@ namespace Confidencial
                     int highcard = cleanLSB(trips);
                     return CONSTANTS.FULLHOUSE | highcard << 13 | highcard ^ trips;
                 }
-                return CONSTANTS.FULLHOUSE | trips << 13 | cleanLSB(pair); 
+                return CONSTANTS.FULLHOUSE | trips << 13 | cleanLSB(pair);
             }
-            
+
             // four + "trips"
             if (cc == 2)
             {
@@ -275,7 +271,7 @@ namespace Confidencial
             {
                 next = R.Next(0, CONSTANTS.CARDS_TOTAL);
                 n = CONSTANTS.ONE << next;
-                while ( (allCards & n) > 0 )
+                while ((allCards & n) > 0)
                 {
                     next = R.Next(0, CONSTANTS.CARDS_TOTAL);
                     n = CONSTANTS.ONE << next;
@@ -353,19 +349,19 @@ namespace Confidencial
             int j = 0;
             villainCards = new ulong[nVillains];
 
-            
+
             int v;
             bool TryAgain = true;
 
             //Vilains pocket pair
-            while (TryAgain) 
+            while (TryAgain)
             {
                 TryAgain = false;
                 v = 0;
                 allCards = heroCards | currentBoard;
 
                 while (!TryAgain && v < nVillains)
-                {      
+                {
                     villainCards[v] = range[v, R.Next(0, rangesize[v])];
                     TryAgain = (allCards & villainCards[v]) > 0;
                     allCards |= villainCards[v];
@@ -397,12 +393,12 @@ namespace Confidencial
         {
             ulong cardset = 0;
             int card;
-            
+
             for (int i = 0; i < c.Length; i++)
             {
                 card = c[i];
                 card--;
-                if (card % 13 == 0)  card += 12; 
+                if (card % 13 == 0) card += 12;
                 else card--;
 
                 cardset |= CONSTANTS.ONE << card;
@@ -433,7 +429,7 @@ namespace Confidencial
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int CardRank(char c)
         {
-            int rank; 
+            int rank;
             string s = c + " ";
             switch (c)
             {
@@ -450,9 +446,9 @@ namespace Confidencial
                 default:
                     {
                         rank = -1;
-                        if ( int.TryParse(s, out int i) )
+                        if (int.TryParse(s, out int i))
                         {
-                            if ( i <= 9 && i >= 2 )
+                            if (i <= 9 && i >= 2)
                                 rank = i - 2;
                         }
                         break;
@@ -485,9 +481,9 @@ namespace Confidencial
         {
             ulong cardset = 0;
             int rank;
-            int suit=0; 
+            int suit = 0;
 
-            s = s.Replace(" ", "").ToUpper(); 
+            s = s.Replace(" ", "").ToUpper();
 
             for (int i = 0; i < s.Length; i += 2)
             {
@@ -498,15 +494,15 @@ namespace Confidencial
             return cardset;
         }
 
-        public static string OrderStringCardSet(string s) 
+        public static string OrderStringCardSet(string s)
         {
             string res = "";
-            s = s.Replace(" ", "").ToUpper(); 
-            while (s.Length > 0 )
+            s = s.Replace(" ", "").ToUpper();
+            while (s.Length > 0)
             {
                 int highrank = -1;
                 string card = "";
-                for (int i  = 0; i < s.Length / 2; i++)
+                for (int i = 0; i < s.Length / 2; i++)
                 {
                     int next = 10 * CardRank(s[2 * i]) + CardSuit(s[2 * i + 1]);
                     if (next > highrank)
@@ -527,34 +523,34 @@ namespace Confidencial
         {
             bool valid = true;
             s = s.Replace(" ", "").ToUpper();
-            while (valid && s.Length > 1) 
+            while (valid && s.Length > 1)
             {
                 valid = (CardRank(s[0]) >= 0 && CardSuit(s[1]) >= 0);
                 s = s.Substring(2);
             }
             if (s.Length > 0)
-                valid = valid & CardRank(s[0]) >= 0 ;
+                valid = valid & CardRank(s[0]) >= 0;
             return valid;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ToString(ulong cardset) 
+        public static string ToString(ulong cardset)
         {
             string s = "";
             int rank = 0;
             int suit = 0;
-            while ( cardset > 0)
+            while (cardset > 0)
             {
-                if ( (cardset & 1) != 0)
+                if ((cardset & 1) != 0)
                 {
                     switch (rank)
                     {
-                        case 12: s += "A" ; break;
-                        case 11: s += "K" ; break;
-                        case 10: s += "Q" ; break;
-                        case 9 : s += "J"; break;
-                        case 8 : s += "T"; break;
-                        default: s += (rank+2).ToString() ; break;
+                        case 12: s += "A"; break;
+                        case 11: s += "K"; break;
+                        case 10: s += "Q"; break;
+                        case 9: s += "J"; break;
+                        case 8: s += "T"; break;
+                        default: s += (rank + 2).ToString(); break;
                     }
                     switch (suit)
                     {
@@ -575,13 +571,13 @@ namespace Confidencial
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReturnHandPower (int handNumber) 
+        public static int ReturnHandPower(int handNumber)
         {
             return (handNumber >> 26);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int[] EvaluateAllCombinations() 
+        public static int[] EvaluateAllCombinations()
         {
             int[] res = new int[10];
             ulong c0, c1, c2, c3, c4, c5, c6;
@@ -594,7 +590,7 @@ namespace Confidencial
             ulong max5 = max4 << 1;
             ulong max6 = max5 << 1;
 
-            ulong cardset=0;
+            ulong cardset = 0;
 
             for (int i = 0; i < 10; i++) res[i] = 0;
 
@@ -607,7 +603,7 @@ namespace Confidencial
                     for (c2 = c1 << 1; c2 < max2; c2 <<= 1)
                     {
                         cardset |= c2;
-                        for (c3 = c2 << 1; c3 < max3 ; c3 <<= 1)
+                        for (c3 = c2 << 1; c3 < max3; c3 <<= 1)
                         {
                             cardset |= c3;
                             for (c4 = c3 << 1; c4 < max4; c4 <<= 1)
@@ -627,7 +623,7 @@ namespace Confidencial
                                         res[PEval.ReturnHandPower(PEval.ProcessCardSet(cardset))]++;
 
                                         cardset ^= c6;
-                                    }   
+                                    }
                                     cardset ^= c5;
                                 }
                                 cardset ^= c4;
@@ -644,7 +640,7 @@ namespace Confidencial
 
             return res;
         }
-      
-        
+
+
     }
 }

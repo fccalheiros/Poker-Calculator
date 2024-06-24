@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.CompilerServices;
 
 namespace Confidencial
 {
@@ -13,10 +9,10 @@ namespace Confidencial
         private readonly int[] MAP7CARDS = { 6, 4, 5, 7, 7, 8, 9, 0, 1, 2, 2, 3, 6, 6 };
         private readonly ulong[] DISAMB_ARRAY = { HIGH_CARD_DISAMB, PAIR_DISAMB, PAIR_DISAMB, TRIPS_DISAMB, 0, HIGH_CARD_DISAMB, TRIPS_DISAMB, FOUR_DISAMB, 0, 0 };
 
-        private readonly int[] DISAMB_SHIFT = { 0, 1, 1, 2, 0, 0, 2, 3, 0, 0};
+        private readonly int[] DISAMB_SHIFT = { 0, 1, 1, 2, 0, 0, 2, 3, 0, 0 };
 
-        private readonly bool [] DISAMB_NEED =  { true, true, true, true, false, true, true, true, false, false };
-        private readonly ulong[] DISAMB_CARDS_GAME = { 5, 1, 2, 1, 5, 5, 1, 1, 5, 5  };
+        private readonly bool[] DISAMB_NEED = { true, true, true, true, false, true, true, true, false, false };
+        private readonly ulong[] DISAMB_CARDS_GAME = { 5, 1, 2, 1, 5, 5, 1, 1, 5, 5 };
         private readonly ulong[] DISAMB_CARDS_LEFT = { 0, 3, 1, 2, 0, 0, 1, 1, 0, 0 };
 
 
@@ -45,12 +41,12 @@ namespace Confidencial
         private const ulong FLUSHMASK = 4398583447560;
 
         private const int DECK_CARDS_NUMBER = 52;
-        
+
         // cards --- 1 to 52 
-        private int[] _cards; public int[] Cards  {  get { return _cards; }  set { _cards = value; } }
+        private int[] _cards; public int[] Cards { get { return _cards; } set { _cards = value; } }
         private int[] _cardsValues; public int[] CardsValues { get { return _cardsValues; } set { _cardsValues = value; } }
 
-        private ulong [] _cardsSuits; public ulong [] CardsSuits { get { return _cardsSuits; } set { _cardsSuits = value; } }
+        private ulong[] _cardsSuits; public ulong[] CardsSuits { get { return _cardsSuits; } set { _cardsSuits = value; } }
 
         private ulong _handNumber; public ulong HandNumber { get { return _handNumber; } set { _handNumber = value; } }
 
@@ -62,7 +58,7 @@ namespace Confidencial
 
         private bool _sequenceFound; public bool SequenceFound { get { return _sequenceFound; } set { _sequenceFound = value; } }
 
-        public PokerEval() 
+        public PokerEval()
         {
             _cards = new int[7];
             _cardsValues = new int[7];
@@ -74,7 +70,7 @@ namespace Confidencial
             _handNumber = p.HandNumber;
             _sequenceNumber = p.SequenceNumber;
             _flushNumber = p.FlushNumber;
-            for ( int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 _cards[i] = p.Cards[i];
                 _cardsValues[i] = p.CardsValues[i];
@@ -99,7 +95,7 @@ namespace Confidencial
         }
 
 
-        public override string ToString() 
+        public override string ToString()
         {
             string s = "";
 
@@ -128,7 +124,7 @@ namespace Confidencial
         }
 
         //------------- Testes de possibilidades --------------------------------
-        public void SetCards (ref int [] cartas, int ini, int fim, int index)
+        public void SetCards(ref int[] cartas, int ini, int fim, int index)
         {
 
             if (index == 0)
@@ -280,7 +276,7 @@ namespace Confidencial
             }
 
             p1.SetCards(ref c, 0, 4, 0);
-            p2.Copy(p1,5);
+            p2.Copy(p1, 5);
             p1.SetCards(ref c, 5, 6, 5);
             p2.SetCards(ref c, 7, 8, 5);
 
@@ -312,7 +308,7 @@ namespace Confidencial
             if (_handPower > p2.HandPower) return 1;
             if (_handPower < p2.HandPower) return -1;
 
-            if ( _handPower == (int) PokerHands.Straight  | _handPower == (int)PokerHands.StraightFlush | _handPower == (int)PokerHands.RoyalStraightFlush)
+            if (_handPower == (int)PokerHands.Straight | _handPower == (int)PokerHands.StraightFlush | _handPower == (int)PokerHands.RoyalStraightFlush)
             {
                 if (_sequenceNumber > p2.SequenceNumber) return 1;
                 if (_sequenceNumber < p2.SequenceNumber) return -1;
@@ -320,13 +316,13 @@ namespace Confidencial
             }
 
             HandDisambiguation7Cards(out ulong h11, out ulong h12);
-            p2. HandDisambiguation7Cards(out ulong h21, out ulong h22);
+            p2.HandDisambiguation7Cards(out ulong h21, out ulong h22);
 
             if (h11 > h21) return 1;
             if (h11 < h21) return -1;
 
             if (h12 > h22) return 1;
-            if (h12 < h22) return -1; 
+            if (h12 < h22) return -1;
 
             return 0;
 
@@ -458,14 +454,14 @@ namespace Confidencial
             ulong clean = (hand1 % 15) - DISAMB_CARDS_GAME[_handPower];
 
             //clean up other suit cards
-            if ( FlushNumber > 0 )
+            if (FlushNumber > 0)
             {
                 hand2 = 0;
 
-                if ( clean == 0 ) return;
+                if (clean == 0) return;
 
-                hand1 = 0;                     
-                for ( i = 0; i < 7; i++) 
+                hand1 = 0;
+                for (i = 0; i < 7; i++)
                     if (_cardsSuits[i] == _flushNumber)
                         hand1 |= UM << (_cardsValues[i] << 2);
 
@@ -474,7 +470,7 @@ namespace Confidencial
                 if (clean == 0) return;
             }
             // clean lower games 
-            i = 0;    
+            i = 0;
             while (clean > 0)
             {
                 clean -= (hand1 & 1);
@@ -490,10 +486,10 @@ namespace Confidencial
             }
 
             //Tratamento especial para full house
-            if (_handPower != (int) PokerHands.FullHouse)
+            if (_handPower != (int)PokerHands.FullHouse)
                 hand2 = (hand1 ^ MAX_NUM) & _handNumber & HIGH_CARD_DISAMB;
             else
-                hand2 = ( ((hand1<<1) ^ MAX_NUM) & (_handNumber & PAIR_DISAMB) ) >> 1;
+                hand2 = (((hand1 << 1) ^ MAX_NUM) & (_handNumber & PAIR_DISAMB)) >> 1;
 
             //clean up unused cards
             i = 0;
@@ -505,10 +501,10 @@ namespace Confidencial
                 hand2 >>= 4;
             }
             hand2 <<= i;
-    
+
 
         }
-       
+
         public static void SetRandomHand(PokerEval p1, PokerEval p2, Random R, int[] c)
         {
             int next;
@@ -520,12 +516,12 @@ namespace Confidencial
             sort = UM << next;
             c[0] = next;
 
-            while (j < c.Length) 
+            while (j < c.Length)
             {
                 next = R.Next(1, DECK_CARDS_NUMBER + 1);
                 n = UM << next;
 
-                while ( (sort &  n) > 0)
+                while ((sort & n) > 0)
                 {
                     next = R.Next(1, DECK_CARDS_NUMBER + 1);
                     n = UM << next;
@@ -569,7 +565,7 @@ namespace Confidencial
 
         }
 
-        public static void RandomHand(int[] c, int [,] Range, int RangeSize, Random R)
+        public static void RandomHand(int[] c, int[,] Range, int RangeSize, Random R)
         {
             int next;
             ulong n;
@@ -640,17 +636,17 @@ namespace Confidencial
         */
 
         public int HandDisambiguation5Cards(ulong hand1, ulong hand2, int index)
-         {
-             ulong p1, p2, r1, r2;
+        {
+            ulong p1, p2, r1, r2;
 
-             p1 = hand1 & DISAMB_ARRAY[index];
-             p2 = hand2 & DISAMB_ARRAY[index];
+            p1 = hand1 & DISAMB_ARRAY[index];
+            p2 = hand2 & DISAMB_ARRAY[index];
 
-             if (p1 < p2) return -1;
-             if (p1 > p2) return 1;
+            if (p1 < p2) return -1;
+            if (p1 > p2) return 1;
 
-             p1 >>= DISAMB_SHIFT[index];
-             p2 >>= DISAMB_SHIFT[index];
+            p1 >>= DISAMB_SHIFT[index];
+            p2 >>= DISAMB_SHIFT[index];
 
             if (index != 8)
             {
@@ -663,17 +659,17 @@ namespace Confidencial
                 r2 = (p2 ^ MAX_NUM) & hand2 & PAIR_DISAMB;
             }
 
-             if (r1 < r2) return -1;
-             if (r2 > r1) return 1;
+            if (r1 < r2) return -1;
+            if (r2 > r1) return 1;
 
-             return 0;
-         }
-       
+            return 0;
+        }
+
         // novo
         public void RankPokerFIVECardsHand(int[] cartas, out ulong hand, out ulong hand1, out int index)
         {
-            //(seqnumber - 1) % 13
-            // (seqnumber - valor) / 13
+            //(cardNumber - 1) % 13
+            // (cardNumber - valor) / 13
 
             int[] num = new int[5];
             int[] suit = new int[5];
@@ -756,7 +752,7 @@ namespace Confidencial
             for (int i = 0; i < 5; i++)
             {
                 shift = 4 * (num[i]);
-                hand |= (((hand >> shift) & 15) << 1 | 1) << shift; 
+                hand |= (((hand >> shift) & 15) << 1 | 1) << shift;
                 seq |= 1 << (num[i]);
                 flush &= suit[i];
             }
@@ -781,8 +777,8 @@ namespace Confidencial
         // Não funciona mais pois mudei o procedimento de desambiguação para poder comparar mãos diferentes.
         /* public void RankPokerHand(int[] cartas, out ulong hand, out int seq, out int flush, out int index)
          {
-             //(seqnumber - 1) % 13
-             // (seqnumber - valor) / 13
+             //(cardNumber - 1) % 13
+             // (cardNumber - valor) / 13
 
              int[] num = new int[5];
              int[] suit = new int[5];
@@ -1197,7 +1193,7 @@ namespace Confidencial
             }
 
             flush &= FLUSHMASK;
-            flush >>= 3;   //ajusta para o naipe do flush
+            flush >>= 3;   //ajusta para o suit do flush
 
             int seqAux = MAX_SEQ_PATTERN;
             for (int i = 0; i < 9; i++)

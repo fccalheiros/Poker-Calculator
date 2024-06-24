@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Confidencial
@@ -15,7 +9,7 @@ namespace Confidencial
 
     public partial class Distribution : Form
     {
-        
+
         const int nPlayers = 7;
 
         private Button[] PlayerButton;
@@ -34,10 +28,10 @@ namespace Confidencial
         private int BoardCardsSelected;
         private string BoardCardsSTR;
         private string LastValidBoardCardsSTR;
-    
+
         private int[] TrackBarCache;
 
-        public int[,]  CardsSelection;
+        public int[,] CardsSelection;
         public ulong[] RangeSelection;
         private int _selectionsize;
 
@@ -72,7 +66,7 @@ namespace Confidencial
 
         public Distribution()
         {
-            
+
             InitializeComponent();
             int size = 40;
             int space = 0;
@@ -95,7 +89,7 @@ namespace Confidencial
                 for (int b1 = 0; b1 < 13; b1++)
                     for (int b2 = 0; b2 < 13; b2++)
                         SelectedButton[i, b1, b2] = false;
-      
+
 
             PlayerButton = new Button[nPlayers];
             PlayerButton[0] = BTP1;
@@ -109,12 +103,12 @@ namespace Confidencial
 
             int delta = inicio - BTP1.Location.X;
             System.Drawing.Point L;
-            for (int i = 0; i < nPlayers; i++) 
+            for (int i = 0; i < nPlayers; i++)
             {
-                L = new Point(PlayerButton[i].Location.X + delta, PlayerButton[i].Location.Y) ;
+                L = new Point(PlayerButton[i].Location.X + delta, PlayerButton[i].Location.Y);
                 PlayerButton[i].Location = L;
                 TrackBarCache[i] = 0;
-                
+
             }
 
             for (int i = 0; i < 13; i++)
@@ -141,11 +135,11 @@ namespace Confidencial
             SavedBT = ArrayButton[12, 12];
 
             TrackBAR.Location = new System.Drawing.Point(inicio, inicio + 14 * (size + space));
-            TBPercentual.Location  = new System.Drawing.Point(inicio + TrackBAR.Size.Width + 10, TrackBAR.Location.Y);
+            TBPercentual.Location = new System.Drawing.Point(inicio + TrackBAR.Size.Width + 10, TrackBAR.Location.Y);
             TBThreads.Location = new System.Drawing.Point(TBPercentual.Location.X, TBPercentual.Location.Y + TBPercentual.Height + 10);
             TBOutput.Location = new System.Drawing.Point(inicio, TrackBAR.Location.Y + TrackBAR.Size.Height + 20);
 
- 
+
 
             Size = new Size(1250, 850);
             BTAll.Location = new System.Drawing.Point(inicio + 14 * (size + space), BTAll.Location.Y);
@@ -163,7 +157,7 @@ namespace Confidencial
 
             TBHero.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size, inicio + 13 * (size + space) + 20);
             TBHero.Width = 4 * (size + space);
-            TBBoard.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + 5* (size+space), inicio + 13 * (size + space) + 20);
+            TBBoard.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + 5 * (size + space), inicio + 13 * (size + space) + 20);
             TBBoard.Width = TBHero.Width;
 
             for (int i = 0; i < 4; i++)
@@ -172,13 +166,13 @@ namespace Confidencial
                 {
                     HeroButton[i, j] = new PokerButton(13 * i + j, Color.FromArgb(224, 127, 127))
                     {
-                        Location = new System.Drawing.Point(BTClearAll.Location.X  + BTClearAll.Width + size + i * (size + space), inicio + j * (size + space)),
+                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + i * (size + space), inicio + j * (size + space)),
                         Size = new System.Drawing.Size(size, size)
-                     };
+                    };
 
-                    BoardButton[i,j] = new PokerButton(13 * i + j, Color.FromArgb(188, 206, 211))
+                    BoardButton[i, j] = new PokerButton(13 * i + j, Color.FromArgb(188, 206, 211))
                     {
-                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + (i+5) * (size + space), inicio + j * (size + space)),
+                        Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size + (i + 5) * (size + space), inicio + j * (size + space)),
                         Size = new System.Drawing.Size(size, size)
                     };
 
@@ -186,7 +180,7 @@ namespace Confidencial
                     BoardButton[i, j].Refresh();
 
                     HeroButton[i, j].Click += new System.EventHandler(this.BTHEROCard_click);
-                    BoardButton[i,j].Click += new System.EventHandler(this.BTBOARDCard_click);
+                    BoardButton[i, j].Click += new System.EventHandler(this.BTBOARDCard_click);
 
                     Controls.Add(HeroButton[i, j]);
                     Controls.Add(BoardButton[i, j]);
@@ -231,10 +225,10 @@ namespace Confidencial
             if (bt.Selected) HeroHandSTR += bt.Text + " ";
             else HeroHandSTR = HeroHandSTR.Replace(bt.Text + " ", "");
 
-            if (HeroCardsSelected > 2) 
+            if (HeroCardsSelected > 2)
                 bt.PerformClick();
 
-            if (bt.Selected && BoardButton[bt.X, bt.Y].Selected) 
+            if (bt.Selected && BoardButton[bt.X, bt.Y].Selected)
                 bt.PerformClick();
 
             TBHero.TextChanged -= new System.EventHandler(this.TBHero_TextChanged);
@@ -249,9 +243,9 @@ namespace Confidencial
             BoardCardsSelected += (bt.Selected == true) ? 1 : -1;
 
             if (bt.Selected) BoardCardsSTR += bt.Text + " ";
-            else BoardCardsSTR = BoardCardsSTR.Replace(bt.Text+" ", "");
+            else BoardCardsSTR = BoardCardsSTR.Replace(bt.Text + " ", "");
 
-            if (BoardCardsSelected > 5) 
+            if (BoardCardsSelected > 5)
                 bt.PerformClick();
 
             if (bt.Selected && HeroButton[bt.X, bt.Y].Selected)
@@ -268,7 +262,7 @@ namespace Confidencial
             //TBSelecao.Text += ((Button)sender).Text;
 
             PokerButton bt = (PokerButton)sender;
-            SelectedButton[SelectedPlayer, bt.X, bt.Y] = bt.Selected; 
+            SelectedButton[SelectedPlayer, bt.X, bt.Y] = bt.Selected;
         }
 
         private void BT_MouseUP(object sender, MouseEventArgs e)
@@ -281,7 +275,7 @@ namespace Confidencial
             PokerButton bt = (PokerButton)sender;
             bt.PerformClick();
             this.Capture = true;
-            
+
         }
 
         private void BT_MouseMove(object sender, MouseEventArgs e)
@@ -295,7 +289,7 @@ namespace Confidencial
                     bt.PerformClick();
                 }
             }
-        }   
+        }
 
         private void BTAll_Click(object sender, EventArgs e)
         {
@@ -388,7 +382,7 @@ namespace Confidencial
         {
             for (int i = 0; i < 13; i++)
             {
-                for (int j = i+1; j < 13; j++)
+                for (int j = i + 1; j < 13; j++)
                 {
                     ArrayButton[j, i].SelectButton();
                 }
@@ -409,7 +403,7 @@ namespace Confidencial
 
         private void BTPair_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < 13; i++) 
+            for (int i = 0; i < 13; i++)
             {
                 ArrayButton[i, i].SelectButton();
             }
@@ -421,16 +415,16 @@ namespace Confidencial
             nfi.PercentDecimalDigits = 1;
             float p = 0;
 
-            for (int i = 0; i < TrackBAR.Value; i++ )
+            for (int i = 0; i < TrackBAR.Value; i++)
             {
                 string s = order[i];
-                int x = Converte(s.Substring(0,1));
-                int y = Converte(s.Substring(1,1));
-                if (s.Length == 2) { ArrayButton[x, y].SelectButton();  p += 6;  }
+                int x = Converte(s.Substring(0, 1));
+                int y = Converte(s.Substring(1, 1));
+                if (s.Length == 2) { ArrayButton[x, y].SelectButton(); p += 6; }
                 else if (order[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].SelectButton(); p += 4; }
-                else { ArrayButton[x, y].SelectButton();  p += 12;  }
+                else { ArrayButton[x, y].SelectButton(); p += 12; }
             }
-            for (int i = TrackBAR.Value; i < 169; i++) 
+            for (int i = TrackBAR.Value; i < 169; i++)
             {
                 string s = order[i];
                 int x = Converte(s.Substring(0, 1));
@@ -440,7 +434,7 @@ namespace Confidencial
                 else { ArrayButton[x, y].UnSelectButton(); }
             }
 
-             p /= (52*51/2);
+            p /= (52 * 51 / 2);
             TBPercentual.Text = p.ToString("P", nfi);
             TrackBarCache[SelectedPlayer] = TrackBAR.Value;
         }
@@ -458,15 +452,15 @@ namespace Confidencial
             Point L;
             Rectangle R1;
 
-            Rectangle R = new Rectangle(TrackBAR.Location.X-2, TrackBAR.Location.Y-2, 
-                 TrackBAR.ClientRectangle.Width+4, TrackBAR.ClientRectangle.Height+4);
+            Rectangle R = new Rectangle(TrackBAR.Location.X - 2, TrackBAR.Location.Y - 2,
+                 TrackBAR.ClientRectangle.Width + 4, TrackBAR.ClientRectangle.Height + 4);
 
             ControlPaint.DrawBorder(e.Graphics, R,
                  System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Inset,
                  System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Inset,
                  System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Outset,
                  System.Drawing.SystemColors.ControlLightLight, 2, ButtonBorderStyle.Outset);
-            
+
 
             for (int i = 0; i < nPlayers; i++)
             {
@@ -494,7 +488,7 @@ namespace Confidencial
 
         private void Distribution_Resize(object sender, EventArgs e)
         {
-           // TBPercentual.Text = Size.Width.ToString() + " " + Size.Height.ToString();
+            // TBPercentual.Text = Size.Width.ToString() + " " + Size.Height.ToString();
         }
 
         private void BTCancelar_Click(object sender, EventArgs e)
@@ -508,12 +502,12 @@ namespace Confidencial
             s = s.ToUpper();
             switch (s[0])
             {
-                case 'A': return 0; 
-                case 'K': return 1; 
-                case 'Q': return 2; 
-                case 'J': return 3; 
-                case 'T': return 4; 
-                default: return 14 - Convert.ToInt32(s); 
+                case 'A': return 0;
+                case 'K': return 1;
+                case 'Q': return 2;
+                case 'J': return 3;
+                case 'T': return 4;
+                default: return 14 - Convert.ToInt32(s);
             }
 
         }
@@ -528,7 +522,7 @@ namespace Confidencial
                 case 'H': suit = 1; break;
                 case 'S': suit = 2; break;
                 case 'D': suit = 3; break;
-                default : suit =-1; break;
+                default: suit = -1; break;
             }
             return suit;
         }
@@ -573,7 +567,7 @@ namespace Confidencial
             Button bt = (Button)sender;
             int p = Convert.ToInt32(bt.Text.Replace("Player", "")) - 1;
             EventArgs e1 = new EventArgs();
-           
+
             if (SelectedPlayer != p)
             {
                 SelectedPlayer = p;
@@ -581,10 +575,10 @@ namespace Confidencial
                 TrackBAR.Value = TrackBarCache[SelectedPlayer];
                 this.TrackBAR1_Scroll(TrackBAR, e1);
 
-               for (int b1 = 0; b1 < 13; b1++)
-                    for ( int b2 = 0; b2 < 13; b2++)
+                for (int b1 = 0; b1 < 13; b1++)
+                    for (int b2 = 0; b2 < 13; b2++)
                     {
-                        ArrayButton[b1, b2].Selected = SelectedButton[SelectedPlayer, b1, b2]; 
+                        ArrayButton[b1, b2].Selected = SelectedButton[SelectedPlayer, b1, b2];
                     }
             }
             this.Refresh();
@@ -616,7 +610,7 @@ namespace Confidencial
                             {
                                 for (int k1 = 0; k1 <= 39; k1 += 13)
                                 {
-                                    range[nVillains,index] = (CONSTANTS.ONE << (c1N + k1)) | (CONSTANTS.ONE << (c2N + k1));
+                                    range[nVillains, index] = (CONSTANTS.ONE << (c1N + k1)) | (CONSTANTS.ONE << (c2N + k1));
                                     index++;
                                 }
                             }
@@ -628,7 +622,7 @@ namespace Confidencial
                                 {
                                     for (int k2 = 13; k2 <= 39; k2 += 13)
                                     {
-                                        range[nVillains,index] = (CONSTANTS.ONE << (c1N + k1)) | (CONSTANTS.ONE << ((c2N + k1 + k2) % 52));
+                                        range[nVillains, index] = (CONSTANTS.ONE << (c1N + k1)) | (CONSTANTS.ONE << ((c2N + k1 + k2) % 52));
                                         index++;
                                     }
                                 }
@@ -639,7 +633,7 @@ namespace Confidencial
                                 {
                                     for (int k2 = k1 + 13; k2 <= 39; k2 += 13)
                                     {
-                                        range[nVillains,index] = (CONSTANTS.ONE << (c1N + k1)) | (CONSTANTS.ONE << (c2N + k2));
+                                        range[nVillains, index] = (CONSTANTS.ONE << (c1N + k1)) | (CONSTANTS.ONE << (c2N + k2));
                                         index++;
                                     }
                                 }
@@ -648,7 +642,7 @@ namespace Confidencial
                         }
                     }
                 }
-                if ( index > 0 )
+                if (index > 0)
                 {
                     rangesize[nVillains] = index;
                     nVillains++;
@@ -656,7 +650,7 @@ namespace Confidencial
             }
         }
 
-        public void SETOLDCardSelection() 
+        public void SETOLDCardSelection()
         {
             int index = 0;
             int c1, c2;
@@ -758,26 +752,26 @@ namespace Confidencial
                 PokerServer[i].Join();
             }
 
-            ShowResults(dtini,DateTime.Now);
+            ShowResults(dtini, DateTime.Now);
         }
 
         private void TBHero_TextChanged(object sender, EventArgs e)
         {
-            
+
             TextBox tb = (TextBox)sender;
             string s = tb.Text.Replace(" ", "");
             int x, y;
 
             bool valid = PEval.IsValidStringCardSet(s); ;
 
-            if (s.Length > 4 || ! valid )
+            if (s.Length > 4 || !valid)
             {
                 s = LastValidHeroHandSTR.Replace(" ", "");
                 tb.Text = LastValidHeroHandSTR;
             }
 
-           
-            if  (s.Length % 2 == 0 )
+
+            if (s.Length % 2 == 0)
             {
                 tb.BackColor = System.Drawing.SystemColors.Window;
 
@@ -787,7 +781,7 @@ namespace Confidencial
                             HeroButton[x, y].PerformClick();
 
 
-                for (int i = 0; i < s.Length ; i +=2)
+                for (int i = 0; i < s.Length; i += 2)
                 {
                     x = ConverteSuit(s.Substring(i + 1, 1));
                     y = Converte(s.Substring(i, 1));
@@ -796,8 +790,8 @@ namespace Confidencial
                 }
 
             }
-     
-            
+
+
         }
 
         private void TBBoard_TextChanged(object sender, EventArgs e)
@@ -838,21 +832,21 @@ namespace Confidencial
 
         }
 
-        private void ShowResults( DateTime dtIni, DateTime dtFim)
+        private void ShowResults(DateTime dtIni, DateTime dtFim)
         {
             ulong nSimul = w + l + t;
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.PercentDecimalDigits = 2;
-            string s = ""; 
+            string s = "";
             s += "HERO: " + HeroHandSTR + " - " + w.ToString("N0", nfi) + " : " + l.ToString("N0", nfi) + " : " + t.ToString("N0", nfi);
-            
+
             float g = ((float)(w) / (float)Convert.ToDecimal(nSimul));
             float p = ((float)(l) / (float)Convert.ToDecimal(nSimul));
             float e = 1 - p - g;
             float equity = g + et / (float)Convert.ToDecimal(nSimul);
             s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
             s += "\r\nBOARD: " + BoardCardsSTR;
-            s += "\r\nTempo Total (" + nSimul.ToString("N0",nfi) + ") :" + (dtFim - dtIni).ToString();
+            s += "\r\nTempo Total (" + nSimul.ToString("N0", nfi) + ") :" + (dtFim - dtIni).ToString();
 
             TBOutput.Text = s;
         }

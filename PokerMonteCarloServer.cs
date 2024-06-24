@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Confidencial
 {
@@ -29,28 +25,28 @@ namespace Confidencial
 
         private simulCallBack cb;
 
-        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb) 
-        { 
-            herohand = h; 
+        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb)
+        {
+            herohand = h;
             nSimul = n;
             currentBoard = currboard;
             boardCardsLeft = bcl;
-            cb = callb;  
+            cb = callb;
         }
 
-        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong [] r, int rS, simulCallBack callb) 
-        { 
-            herohand = h; 
+        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb)
+        {
+            herohand = h;
             nSimul = n;
             currentBoard = currboard;
             boardCardsLeft = bcl;
             range = r;
             rangeSize = rS;
-            cb = callb; 
+            cb = callb;
         }
 
 
-        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int [] rS, int nV, simulCallBack callb)
+        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb)
         {
             herohand = h;
             nSimul = n;
@@ -75,10 +71,10 @@ namespace Confidencial
             Random R = new Random(DateTime.Now.Millisecond);
 
             win = 0; tie = 0; lost = 0;
-          
+
             for (ulong i = 0; i < nSimul; i++)
             {
-                
+
                 PEval.RandomHand(herohand, currentBoard, boardCardsLeft, out board, out villainhand, R);
                 heroResult = PEval.ProcessCardSet(herohand | board);
                 villainResult = PEval.ProcessCardSet(villainhand | board);
@@ -91,7 +87,7 @@ namespace Confidencial
                     tie++;
 
             }
-            eqTie = (float) tie / 2;
+            eqTie = (float)tie / 2;
 
             if (cb != null) cb(win, lost, tie, eqTie);
 
@@ -109,7 +105,7 @@ namespace Confidencial
 
             win = 0; tie = 0; lost = 0;
             eqTie = 0;
-            
+
             for (ulong i = 0; i < nSimul; i++)
             {
 
@@ -135,11 +131,11 @@ namespace Confidencial
 
         public void SimulaRangeN()
         {
-            ulong [] villainhand;
+            ulong[] villainhand;
             ulong board;
             int heroResult;
             int bestvillainResult;
-            int [] villainResult;
+            int[] villainResult;
 
 
             Thread.Sleep(1);
