@@ -635,14 +635,14 @@ public class HoldemPokerHand
         bool res = board[ind].CardNumber == 0;
         if (!res) return res;
 
-        CARD carta = new CARD(Convert.ToByte(c));
-        board[ind] = carta;
+        CARD newBoardCard = new CARD(Convert.ToByte(c));
+        board[ind] = newBoardCard;
 
-        hand[carta.value]++;
-        suits[carta.suit]++;
+        hand[newBoardCard.value]++;
+        suits[newBoardCard.suit]++;
 
-        // o Ás também é colocado no final para facilitar a verificação de sequências.
-        if (carta.value == 0) hand[NumCards - 1]++;
+        // The Ace is also placed at the end to facilitate the verification of sequences.
+        if (newBoardCard.value == 0) hand[NumCards - 1]++;
 
         return res;
     }

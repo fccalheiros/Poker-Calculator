@@ -360,7 +360,8 @@ namespace PokerCalculator
                 TryAgain = false;
                 v = 0;
                 allCards = heroCards | currentBoard;
-
+                // If a duplicate card is drawn, the process must start over to avoid errors in the probability calculations.
+                // this may lead to infinite loops with large number of players with small and equal card range
                 while (!TryAgain && v < nVillains)
                 {
                     villainCards[v] = range[v, R.Next(0, rangesize[v])];

@@ -35,7 +35,7 @@ namespace PokerCalculator
         public ulong[] RangeSelection;
         private int selectionSize;
 
-        private readonly string[] order = { "AA", "KK", "QQ", "JJ", "TT", "AKs", "99", "AQs", "AKo", "AJs", "KQs", "88", "ATs", "AQo", "KJs", "KTs", "QJs", "AJo", "KQo", "QTs",
+        private readonly string[] StrengthOrder = { "AA", "KK", "QQ", "JJ", "TT", "AKs", "99", "AQs", "AKo", "AJs", "KQs", "88", "ATs", "AQo", "KJs", "KTs", "QJs", "AJo", "KQo", "QTs",
                                    "A9s", "77", "ATo", "JTs", "KJo", "A8s", "K9s", "QJo", "A7s", "KTo", "Q9s", "A5s", "66", "A6s", "QTo", "J9s", "A9o", "T9s",
                                    "A4s", "K8s", "JTo", "K7s", "A8o", "A3s", "Q8s", "K9o", "A2s", "K6s", "J8s", "T8s", "A7o", "55", "Q9o", "98s", "K5s", "Q7s",
                                    "J9o","A5o", "T9o", "A6o", "K4s", "K8o", "Q6s", "J7s", "T7s", "A4o", "97s", "K3s", "87s", "Q5s", "K7o", "44", "Q8o", "A3o", "K2s",
@@ -45,8 +45,8 @@ namespace PokerCalculator
                                    "65o", "Q2o", "J4o", "83s", "75o", "52s", "85o", "82s", "T5o", "95o", "J3o", "62s", "54o", "42s", "T4o", "J2o", "72s", "64o", "T3o",
                                    "32s", "74o", "84o", "T2o", "94o", "53o", "93o", "63o", "43o", "92o", "73o", "83o", "52o", "82o", "42o", "62o", "72o", "32o" };
 
-        private ulong w, l, t;
-        private float et;
+        private ulong win, loss, tie;
+        private float tieEquity;
 
         private static readonly Mutex mut = new Mutex();
 
@@ -405,6 +405,83 @@ namespace PokerCalculator
             }
         }
 
+        private void TBHero_TextChanged(object sender, EventArgs e)
+        {
+
+            TextBox tb = (TextBox)sender;
+            string s = tb.Text.Replace(" ", "");
+            int x, y;
+
+            bool valid = PEval.IsValidStringCardSet(s); ;
+
+            if (s.Length > 4 || !valid)
+            {
+                s = LastValidHeroHandSTR.Replace(" ", "");
+                tb.Text = LastValidHeroHandSTR;
+            }
+
+
+            if (s.Length % 2 == 0)
+            {
+                tb.BackColor = System.Drawing.SystemColors.Window;
+
+                for (x = 0; x < 4; x++)
+                    for (y = 0; y < 13; y++)
+                        if (HeroButton[x, y].Selected)
+                            HeroButton[x, y].PerformClick();
+
+
+                for (int i = 0; i < s.Length; i += 2)
+                {
+                    x = ToSuitNumber(s.Substring(i + 1, 1));
+                    y = ToCardNumber(s.Substring(i, 1));
+                    if (!HeroButton[x, y].Selected)
+                        HeroButton[x, y].PerformClick();
+                }
+
+            }
+
+
+        }
+
+        private void TBBoard_TextChanged(object sender, EventArgs e)
+        {
+
+            TextBox tb = (TextBox)sender;
+            string s = tb.Text.Replace(" ", "");
+            int x, y;
+
+            bool valid = PEval.IsValidStringCardSet(s); ;
+
+            if (s.Length > 10 || !valid)
+            {
+                s = LastValidBoardCardsSTR.Replace(" ", "");
+                tb.Text = LastValidHeroHandSTR;
+            }
+
+
+            if (s.Length % 2 == 0)
+            {
+                tb.BackColor = System.Drawing.SystemColors.Window;
+
+                for (x = 0; x < 4; x++)
+                    for (y = 0; y < 13; y++)
+                        if (BoardButton[x, y].Selected)
+                            BoardButton[x, y].PerformClick();
+
+
+                for (int i = 0; i < s.Length; i += 2)
+                {
+                    x = ToSuitNumber(s.Substring(i + 1, 1));
+                    y = ToCardNumber(s.Substring(i, 1));
+                    if (!BoardButton[x, y].Selected)
+                        BoardButton[x, y].PerformClick();
+                }
+
+            }
+
+        }
+
         private void TrackBAR1_Scroll(object sender, EventArgs e)
         {
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
@@ -413,20 +490,20 @@ namespace PokerCalculator
 
             for (int i = 0; i < TrackBAR.Value; i++)
             {
-                string s = order[i];
+                string s = StrengthOrder[i];
                 int x = ToCardNumber(s.Substring(0, 1));
                 int y = ToCardNumber(s.Substring(1, 1));
                 if (s.Length == 2) { ArrayButton[x, y].SelectButton(); p += 6; }
-                else if (order[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].SelectButton(); p += 4; }
+                else if (StrengthOrder[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].SelectButton(); p += 4; }
                 else { ArrayButton[x, y].SelectButton(); p += 12; }
             }
             for (int i = TrackBAR.Value; i < 169; i++)
             {
-                string s = order[i];
+                string s = StrengthOrder[i];
                 int x = ToCardNumber(s.Substring(0, 1));
                 int y = ToCardNumber(s.Substring(1, 1));
                 if (s.Length == 2) { ArrayButton[x, y].UnSelectButton(); }
-                else if (order[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].UnSelectButton(); }
+                else if (StrengthOrder[i].Substring(2, 1).Equals("s")) { ArrayButton[y, x].UnSelectButton(); }
                 else { ArrayButton[x, y].UnSelectButton(); }
             }
 
@@ -713,8 +790,8 @@ namespace PokerCalculator
 
         private void RunMonteCarloSimulator()
         {
-            w = 0; t = 0; l = 0; et = 0;
-            DateTime dtini = DateTime.Now;
+            win = 0; tie = 0; loss = 0; tieEquity = 0;
+            DateTime InitialDateTime = DateTime.Now;
 
             ulong nSimul = 10000000;
 
@@ -734,124 +811,53 @@ namespace PokerCalculator
             PokerMonteCarloServer[] server = new PokerMonteCarloServer[nThreads];
             Thread[] PokerServer = new Thread[nThreads];
 
-            for (int i = 0; i < nThreads; i++)
+            for (int i = 0; i < nThreads-1; i++)
             {
                 server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, range, rangesize, nVillains, new simulCallBack(ResultCallback));
                 PokerServer[i] = new Thread(new ThreadStart(server[i].SimulateRangeN));
                 PokerServer[i].Start();
             }
+            server[nThreads - 1] = new PokerMonteCarloServer(herohand, nSimul-n*((ulong)nThreads-1), currentBoard, boardCardsLeft, range, rangesize, nVillains, new simulCallBack(ResultCallback));
+            PokerServer[nThreads - 1] = new Thread(new ThreadStart(server[nThreads - 1].SimulateRangeN));
+            PokerServer[nThreads - 1].Start();
 
             for (int i = 0; i < nThreads; i++)
             {
                 PokerServer[i].Join();
             }
 
-            ShowResults(dtini, DateTime.Now);
+            ShowResults(InitialDateTime, DateTime.Now);
         }
 
-        private void TBHero_TextChanged(object sender, EventArgs e)
-        {
 
-            TextBox tb = (TextBox)sender;
-            string s = tb.Text.Replace(" ", "");
-            int x, y;
-
-            bool valid = PEval.IsValidStringCardSet(s); ;
-
-            if (s.Length > 4 || !valid)
-            {
-                s = LastValidHeroHandSTR.Replace(" ", "");
-                tb.Text = LastValidHeroHandSTR;
-            }
-
-
-            if (s.Length % 2 == 0)
-            {
-                tb.BackColor = System.Drawing.SystemColors.Window;
-
-                for (x = 0; x < 4; x++)
-                    for (y = 0; y < 13; y++)
-                        if (HeroButton[x, y].Selected)
-                            HeroButton[x, y].PerformClick();
-
-
-                for (int i = 0; i < s.Length; i += 2)
-                {
-                    x = ToSuitNumber(s.Substring(i + 1, 1));
-                    y = ToCardNumber(s.Substring(i, 1));
-                    if (!HeroButton[x, y].Selected)
-                        HeroButton[x, y].PerformClick();
-                }
-
-            }
-
-
-        }
-
-        private void TBBoard_TextChanged(object sender, EventArgs e)
-        {
-
-            TextBox tb = (TextBox)sender;
-            string s = tb.Text.Replace(" ", "");
-            int x, y;
-
-            bool valid = PEval.IsValidStringCardSet(s); ;
-
-            if (s.Length > 10 || !valid)
-            {
-                s = LastValidBoardCardsSTR.Replace(" ", "");
-                tb.Text = LastValidHeroHandSTR;
-            }
-
-
-            if (s.Length % 2 == 0)
-            {
-                tb.BackColor = System.Drawing.SystemColors.Window;
-
-                for (x = 0; x < 4; x++)
-                    for (y = 0; y < 13; y++)
-                        if (BoardButton[x, y].Selected)
-                            BoardButton[x, y].PerformClick();
-
-
-                for (int i = 0; i < s.Length; i += 2)
-                {
-                    x = ToSuitNumber(s.Substring(i + 1, 1));
-                    y = ToCardNumber(s.Substring(i, 1));
-                    if (!BoardButton[x, y].Selected)
-                        BoardButton[x, y].PerformClick();
-                }
-
-            }
-
-        }
 
         private void ShowResults(DateTime dtIni, DateTime dtFim)
         {
-            ulong nSimul = w + l + t;
+            ulong nSimul = win + loss + tie;
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.PercentDecimalDigits = 2;
             string s = "";
-            s += "HERO: " + HeroHandSTR + " - " + w.ToString("N0", nfi) + " : " + l.ToString("N0", nfi) + " : " + t.ToString("N0", nfi);
+            s += "HERO: " + HeroHandSTR + " - " + win.ToString("N0", nfi) + " : " + loss.ToString("N0", nfi) + " : " + tie.ToString("N0", nfi);
 
-            float g = ((float)(w) / (float)Convert.ToDecimal(nSimul));
-            float p = ((float)(l) / (float)Convert.ToDecimal(nSimul));
-            float e = 1 - p - g;
-            float equity = g + et / (float)Convert.ToDecimal(nSimul);
-            s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
+            float w = ((float)(win) / (float)Convert.ToDecimal(nSimul));
+            float l = ((float)(loss) / (float)Convert.ToDecimal(nSimul));
+            float t = 1 - l - w;
+            float equity = w + tieEquity / (float)Convert.ToDecimal(nSimul);
+            s += " --- " + w.ToString("P", nfi) + " : " + l.ToString("P", nfi) + " : " + t.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
             s += "\r\nBOARD: " + BoardCardsSTR;
-            s += "\r\nTempo Total (" + nSimul.ToString("N0", nfi) + ") :" + (dtFim - dtIni).ToString();
+            s += "\r\nProcessing Time (" + nSimul.ToString("N0", nfi) + ") :" + (dtFim - dtIni).ToString();
 
             TBOutput.Text = s;
         }
 
-        public void ResultCallback(ulong _w, ulong _l, ulong _t, float _et)
+        public void ResultCallback(ulong _win, ulong _loss, ulong _tie, float _tieEquity)
         {
+            // When there is more than one opponent, multiple ties may occur. Therefore, tie equity should be considered as an outcome of the process.
             mut.WaitOne();
-            w += _w;
-            l += _l;
-            t += _t;
-            et += _et;
+            win += _win;
+            loss += _loss;
+            tie += _tie;
+            tieEquity += _tieEquity;
             mut.ReleaseMutex();
         }
 
