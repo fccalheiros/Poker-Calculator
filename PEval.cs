@@ -52,6 +52,7 @@ namespace PokerCalculator
             return subset & (subset - 1);
         }
 
+        // Cleans 2 Lower significant bits
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB2(int subset)
         {
@@ -60,6 +61,7 @@ namespace PokerCalculator
             return c & (c - 1);
         }
 
+        // Cleans lower significant bit
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset, int times)
         {
@@ -73,12 +75,14 @@ namespace PokerCalculator
             return c;
         }
 
+        //Return the last bit set with 1
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int lastbit(int subset)
         {
             return CONSTANTS.MultiplyDeBruijnBitPosition[((UInt32)((subset & -subset) * 0x077CB531U)) >> 27];
         }
 
+        // Check for a straight on a set of cards
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int straight(int subset)
         {
@@ -103,6 +107,9 @@ namespace PokerCalculator
             return subset;
         }
 
+        // checks for a flush 
+        // in  : each variable contains all the cards of a given suit. Those owned by the player are set to one
+        // out : the number of cards of a suit held by a player - only used if greater or equal to 5  
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int flush(int C, int H, int S, int D, out int bitcc)
         {
@@ -137,6 +144,8 @@ namespace PokerCalculator
 
         }
 
+        // This is the main procedure that identifies a player's hand
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ProcessCardSet(ulong cardSet)
         {
@@ -153,15 +162,17 @@ namespace PokerCalculator
             int cc, flushcc;
             int st, fl, stfl;
 
-
+            //separates the set of cards into their suit
             C = (int)((cardSet) & 0b1111111111111);
             H = (int)((cardSet >> 13) & 0b1111111111111);
             S = (int)((cardSet >> 26) & 0b1111111111111);
             D = (int)((cardSet >> 39) & 0b1111111111111);
 
+            //identifies the quantity of different numbers
             CHSD_OR = C | H | S | D;
             cc = bitCount(CHSD_OR);
 
+            // Test straight, flush, trips, two pairs, pair or High Card
             if (cc >= 5)
             {
                 st = straight(CHSD_OR);
@@ -257,7 +268,7 @@ namespace PokerCalculator
             return 0;
         }
 
-        //Hero against random villain hand
+        //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHand(ulong heroCards, ulong currentBoard, int boardCardsLeft, out ulong boardCards, out ulong villainCards, Random R)
         {
@@ -306,7 +317,8 @@ namespace PokerCalculator
 
         }
 
-        //Hero against range villain hand
+        //Given hero and partial (or not) board cards and a villain guess hand, draw villain hand and the rest of the board
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, out ulong boardCards, out ulong villainCards, Random R)
         {
@@ -341,7 +353,7 @@ namespace PokerCalculator
 
         }
 
-        //Hero against N range villain hand
+        //Do the same as the previous for more than one villain
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, out ulong boardCards, out ulong[] villainCards, Random R)
         {
@@ -578,6 +590,7 @@ namespace PokerCalculator
             return (handNumber >> 26);
         }
 
+        // Count all possible hands in a Texas Holdem game
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int[] EvaluateAllCombinations()
         {

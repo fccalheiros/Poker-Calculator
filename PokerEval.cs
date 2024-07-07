@@ -2,6 +2,8 @@
 
 namespace PokerCalculator
 {
+
+    // First implementation that does not have good performance
     class PokerEval
     {
 

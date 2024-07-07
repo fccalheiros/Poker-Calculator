@@ -1,5 +1,7 @@
 ﻿using System;
 
+
+// This is part of the first implementation that does not have good performance
 // This structure represents a deck card
 public struct CARD
 {
