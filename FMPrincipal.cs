@@ -1297,9 +1297,27 @@ namespace PokerCalculator
                 case 19: TestaThreadRangeN(); break;
                 case 20: ORDENAMAOS(); break;
                 case 21: RandomDistTest(); break;
-                case 22: TestaOmaha(); break; 
+                case 22: TestaOmaha(); break;
+                case 23: TestaEnumerated(); break;
                     // default: s += (_cardsValues[i] + 2).ToString(); break;
             }
+
+        }
+
+        private void TestaEnumerated()
+        {
+            string sVillainHand = "5s 3s";
+            string sHeroHand = "Ad Ah";
+            string sBoardCards = "As 7h 5c 2d";
+            ulong heroHand = PEval.ConvertStringToCardSet(sHeroHand);
+            ulong villainHand = PEval.ConvertStringToCardSet(sVillainHand);
+            ulong boardCards = PEval.ConvertStringToCardSet(sBoardCards);
+
+            HoldemEval.Enumerate(heroHand, villainHand, boardCards, out int win, out int loss, out int tie);
+            TB01.Text = "Hero Hand: " + sHeroHand + "\r\n";
+            TB01.Text += "Villain Hand: " + sVillainHand + "\r\n";
+            TB01.Text += "Board: " + sBoardCards + "\r\n";
+            TB01.Text += "win: " + win.ToString() + " loss: " + loss.ToString() + " tie: " + tie.ToString() + "\r\n";
 
         }
 

@@ -169,6 +169,17 @@ namespace PokerCalculator
             return c;
         }
 
+        public static int bitCount(ulong set)
+        {
+            // subset - 52 bits from right to left 2 - A cointaining all suits
+            int c;
+            for (c = 0; set > 0; c++)
+            {
+                set &= set - 1;
+            }
+            return c;
+        }
+
         // Cleans lower significant bit
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset)

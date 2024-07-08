@@ -1,6 +1,7 @@
 ﻿using PokerCalculator;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -10,7 +11,6 @@ namespace PokerCalculator
 {
      class HoldemEval : PEval
     {
-
 
         //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
         [MethodImpl(MethodImplOptions.AggressiveInlining)] 
@@ -154,6 +154,52 @@ namespace PokerCalculator
                 boardCards |= n;
                 j++;
             }
+
+        }
+
+        // board must have 0, 3 or 4 cards
+        public static void Enumerate(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
+        {
+            win = 0; loss = 0; tie = 0;
+
+            int i,j;
+            int boardCount = bitCount(boardCards);
+            int cardsLeft = 5 - bitCount(boardCards);
+            int[] iterators = new int[6];
+            ulong enumeratedCards;
+            ulong allInitialCards = heroCards | villainCards| boardCards;
+
+
+            for (i = 1; i < 6; i++) { iterators[i] = 53; }
+            i = 0;
+            iterators[0] = 0;
+
+            while (  ! ((i == 0) && (iterators[0]+1 == iterators[1])) )
+            {
+                iterators[i]++;
+                for (j = i + 1; j < cardsLeft; j++) { iterators[j] = iterators[j-1] + 1; }
+                i = cardsLeft - 1;
+
+                enumeratedCards = 0;
+                // construct the hole board
+                for ( j = 0; j < cardsLeft; j++) { 
+                    enumeratedCards |= (CONSTANTS.ONE << iterators[j]-1);
+                }
+                // otherwise there are repeated cards
+                if ((enumeratedCards & allInitialCards) == 0)
+                {
+                    int heroResult = ProcessCardSet(heroCards, enumeratedCards | boardCards);
+                    int villainResult= ProcessCardSet(villainCards, enumeratedCards | boardCards);
+                    if (heroResult > villainResult) win++;
+                    else if (heroResult < villainResult) loss++;
+                    else tie++;
+                }
+
+                while( (i>0) & (iterators[i]+1 == iterators[i+1]))  
+                    i = i - 1;
+                
+            }
+
 
         }
     }
