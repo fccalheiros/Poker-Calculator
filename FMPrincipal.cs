@@ -365,14 +365,14 @@ namespace PokerCalculator
                                         ulong cardset = CONSTANTS.ONE << i[0] | CONSTANTS.ONE << i[1] | CONSTANTS.ONE << i[2] |
                                             CONSTANTS.ONE << i[3] | CONSTANTS.ONE << i[4] | CONSTANTS.ONE << i[5] | CONSTANTS.ONE << i[6];
 
-                                        int strength = PEval.ProcessCardSet(cardset);
+                                        int strength = HoldemEval.ProcessCardSet(cardset);
                                         int game = PEval.ReturnHandPower(strength);
                                         contador[game]++;
 
                                         //if (pe.HandPower != game)
                                         // {
                                         //     pe.RankPokerHandSEVENCards(ref i);
-                                        //    strength = PEval.ProcessCardSet(cardset);
+                                        //    strength = HoldemEval.ProcessCardSet(cardset);
                                         //   game = PEval.ReturnHandPower(strength);
                                         // }
                                         /*
@@ -812,17 +812,17 @@ namespace PokerCalculator
             {
 
                 //PokerEval.RandomHand(c, R);
-                //heroResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                //heroResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                 //c[0] = c[7];
                 //c[1] = c[8];
 
-                //villainResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                //villainResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                 //c[0] = carta1;
                 //c[1] = carta2;
 
-                PEval.RandomHand(herohand, 0, 5, out board, out villainhand, R);
-                heroResult = PEval.ProcessCardSet(herohand | board);
-                villainResult = PEval.ProcessCardSet(villainhand | board);
+                HoldemEval.RandomHand(herohand, 0, 5, out board, out villainhand, R);
+                heroResult = HoldemEval.ProcessCardSet(herohand | board);
+                villainResult = HoldemEval.ProcessCardSet(villainhand | board);
 
                 if (heroResult > villainResult)
                     win++;
@@ -874,11 +874,11 @@ namespace PokerCalculator
             {
 
                 //PokerEval.RandomHand(c, R);
-                //heroResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                //heroResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                 //c[0] = c[7];
                 //c[1] = c[8];
 
-                //villainResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                //villainResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                 //c[0] = carta1;
                 //c[1] = carta2;
 
@@ -886,9 +886,9 @@ namespace PokerCalculator
                 //PokerEval.RandomHand(c, Program.FMDistribution.CardsSelection, Program.FMDistribution.SelectionSize, R);
 
 
-                PEval.RandomHandRange(herohand, 0, 5, Program.FMDistribution.RangeSelection, Program.FMDistribution.SelectionSize, out board, out villainhand, R);
-                heroResult = PEval.ProcessCardSet(herohand | board);
-                villainResult = PEval.ProcessCardSet(villainhand | board);
+                HoldemEval.RandomHandRange(herohand, 0, 5, Program.FMDistribution.RangeSelection, Program.FMDistribution.SelectionSize, out board, out villainhand, R);
+                heroResult = HoldemEval.ProcessCardSet(herohand | board);
+                villainResult = HoldemEval.ProcessCardSet(villainhand | board);
 
                 if (heroResult > villainResult)
                     win++;
@@ -957,13 +957,13 @@ namespace PokerCalculator
             for (ulong i = 0; i < nSimul; i++)
             {
 
-                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, range, rangesize, out board, out villainhand, R);
-                heroResult = PEval.ProcessCardSet(herohand | board);
+                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, range, rangesize, out board, out villainhand, R);
+                heroResult = HoldemEval.ProcessCardSet(herohand | board);
                 bestvillainResult = 0;
 
                 for (int v = 0; v < nVillains; v++)
                 {
-                    villainResult[v] = PEval.ProcessCardSet(villainhand[v] | board);
+                    villainResult[v] = HoldemEval.ProcessCardSet(villainhand[v] | board);
                     if (villainResult[v] > bestvillainResult) bestvillainResult = villainResult[v];
                 }
 
@@ -1194,29 +1194,29 @@ namespace PokerCalculator
 
                 PokerEval.RandomHand(c, R);
                 pe.RankPokerHandSEVENCards(ref c);
-                heroResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                heroResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                 c[0] = c[7];
                 c[1] = c[8];
 
 
                 pe1.RankPokerHandSEVENCards(ref c);
-                villainResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                villainResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                 c[0] = carta1;
                 c[1] = carta2;
 
                 //PEval.RandomHand(herohand, out board, out villainhand, R);
-                //heroResult = PEval.ProcessCardSet(herohand | board);
-                //villainResult = PEval.ProcessCardSet(villainhand | board);
+                //heroResult = HoldemEval.ProcessCardSet(herohand | board);
+                //villainResult = HoldemEval.ProcessCardSet(villainhand | board);
 
                 int res = pe.HandCompare7Cards(pe1);
                 int res2 = (heroResult > villainResult ? 1 : heroResult < villainResult ? -1 : 0);
 
                 if (res != res2)
                 {
-                    heroResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                    heroResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                     c[0] = c[7];
                     c[1] = c[8];
-                    villainResult = PEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
+                    villainResult = HoldemEval.ProcessCardSet(PEval.ConvertArrayToCardSet(ref c, 7));
                     c[0] = carta1;
                     c[1] = carta2;
 
@@ -1297,9 +1297,28 @@ namespace PokerCalculator
                 case 19: TestaThreadRangeN(); break;
                 case 20: ORDENAMAOS(); break;
                 case 21: RandomDistTest(); break;
+                case 22: TestaOmaha(); break; 
                     // default: s += (_cardsValues[i] + 2).ToString(); break;
             }
 
+        }
+
+        private void TestaOmaha()
+        {
+            ulong pocket = 0b1100000000000000000000000000000000010000000000010000;
+            ulong board  = 0b0011100000000000000000100000100000000000000000000000;
+            ulong[] cards;
+            OmahaEval.StripCardSet(pocket, out cards);
+            TB01.Text =  Convert.ToString((long)pocket,2).PadLeft(52,'0') + "\r\n";
+            for (int i = 0; i < 4;i++)
+            {
+                TB01.Text += Convert.ToString((long)cards[i], 2).PadLeft(52,'0') + "\r\n";
+            }
+            TB01.Text += PEval.ToString(pocket) + "\r\n";
+            TB01.Text += PEval.ToString(board) + "\r\n";
+            int hand = OmahaEval.ProcessCardSet(cards, board);
+            TB01.Text += Convert.ToString(hand,16) + "\r\n";
+            TB01.Text += PEval.GetHandName(hand);
         }
 
         private void TestaPEVAL()

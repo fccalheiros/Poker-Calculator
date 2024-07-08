@@ -83,6 +83,7 @@ namespace PokerCalculator
             HeroHandSTR = "";
             BoardCardsSTR = "";
             TBThreads.Text = Environment.ProcessorCount.ToString();
+            tbNSimul.Text = "5000000";
 
             SelectedButton = new bool[nPlayers, 13, 13];
             for (int i = 0; i < nPlayers; i++)
@@ -135,6 +136,7 @@ namespace PokerCalculator
             TrackBAR.Location = new System.Drawing.Point(start, start + 14 * (size + space));
             TBPercentual.Location = new System.Drawing.Point(start + TrackBAR.Size.Width + 10, TrackBAR.Location.Y);
             TBThreads.Location = new System.Drawing.Point(TBPercentual.Location.X, TBPercentual.Location.Y + TBPercentual.Height + 10);
+            tbNSimul.Location = new System.Drawing.Point(TBPercentual.Location.X +TBPercentual.Width + 10, TBPercentual.Location.Y);
             TBOutput.Location = new System.Drawing.Point(start, TrackBAR.Location.Y + TrackBAR.Size.Height + 20);
 
             Size = new Size(1250, 850);
@@ -405,6 +407,10 @@ namespace PokerCalculator
             }
         }
 
+        private void BTFMPrincipal_Click(object sender, EventArgs e)
+        {
+            Program.FMMain.Show();
+        }
         private void TBHero_TextChanged(object sender, EventArgs e)
         {
 
@@ -793,13 +799,14 @@ namespace PokerCalculator
             win = 0; tie = 0; loss = 0; tieEquity = 0;
             DateTime InitialDateTime = DateTime.Now;
 
-            ulong nSimul = 10000000;
+            
 
 
             ulong herohand = PEval.ConvertStringToCardSet(HeroHandSTR);
             ulong currentBoard = PEval.ConvertStringToCardSet(BoardCardsSTR);
             int boardCardsLeft = 5 - BoardCardsSelected;
             int nThreads = Convert.ToInt32(TBThreads.Text);
+            ulong nSimul = Convert.ToUInt64(tbNSimul.Text);
             ulong n = nSimul / (ulong)nThreads;
 
             int nVillains;

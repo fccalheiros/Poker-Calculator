@@ -72,9 +72,9 @@ namespace PokerCalculator
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
 
-                PEval.RandomHand(herohand, currentBoard, boardCardsLeft, out board, out villainhand, R);
-                heroResult = PEval.ProcessCardSet(herohand | board);
-                villainResult = PEval.ProcessCardSet(villainhand | board);
+                HoldemEval.RandomHand(herohand, currentBoard, boardCardsLeft, out board, out villainhand, R);
+                heroResult = HoldemEval.ProcessCardSet(herohand,board);
+                villainResult = HoldemEval.ProcessCardSet(villainhand, board);
 
                 if (heroResult > villainResult)
                     win++;
@@ -106,10 +106,10 @@ namespace PokerCalculator
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
 
-                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
+                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
 
-                heroResult = PEval.ProcessCardSet(herohand | board);
-                villainResult = PEval.ProcessCardSet(villainhand | board);
+                heroResult = HoldemEval.ProcessCardSet(herohand, board);
+                villainResult = HoldemEval.ProcessCardSet(villainhand, board);
 
                 if (heroResult > villainResult)
                     win++;
@@ -146,14 +146,14 @@ namespace PokerCalculator
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
 
-                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
+                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
 
-                heroResult = PEval.ProcessCardSet(herohand | board);
+                heroResult = HoldemEval.ProcessCardSet(herohand, board);
                 bestvillainResult = 0;
 
                 for (int v = 0; v < nVillains; v++)
                 {
-                    villainResult[v] = PEval.ProcessCardSet(villainhand[v] | board);
+                    villainResult[v] = HoldemEval.ProcessCardSet(villainhand[v],board);
                     if (villainResult[v] > bestvillainResult) bestvillainResult = villainResult[v];
                 }
 

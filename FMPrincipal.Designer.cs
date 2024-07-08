@@ -139,7 +139,8 @@ namespace PokerCalculator
             "TestaRandomGamesRangeFastN",
             "TestaThreadRangeN",
             "ORDENAMAOS",
-            "RandomDistTest"});
+            "RandomDistTest",
+            "TestaOmaha"});
             this.CBTeste.Location = new System.Drawing.Point(1087, 797);
             this.CBTeste.Name = "CBTeste";
             this.CBTeste.Size = new System.Drawing.Size(233, 33);

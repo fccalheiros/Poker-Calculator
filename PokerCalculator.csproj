@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D63F8852-E194-4CCF-8C0B-1DA2C31FEFB7}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Confidencial</RootNamespace>
-    <AssemblyName>Confidencial</AssemblyName>
+    <RootNamespace>PokerCalculator</RootNamespace>
+    <AssemblyName>PokerCalculator</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -76,6 +76,8 @@
       <DependentUpon>FMPrincipal.cs</DependentUpon>
     </Compile>
     <Compile Include="Hand.cs" />
+    <Compile Include="HoldemEval.cs" />
+    <Compile Include="OmahaEval.cs" />
     <Compile Include="PEval.cs" />
     <Compile Include="PokerButton.cs">
       <SubType>Component</SubType>
@@ -100,6 +102,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

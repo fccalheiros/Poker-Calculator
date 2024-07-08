@@ -43,6 +43,8 @@ namespace PokerCalculator
             this.BTClearHero = new System.Windows.Forms.Button();
             this.TBHero = new System.Windows.Forms.TextBox();
             this.TBBoard = new System.Windows.Forms.TextBox();
+            this.tbNSimul = new System.Windows.Forms.TextBox();
+            this.BTFMPrincipal = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.TrackBAR)).BeginInit();
             this.SuspendLayout();
             // 
@@ -268,11 +270,30 @@ namespace PokerCalculator
             this.TBBoard.TabIndex = 22;
             this.TBBoard.TextChanged += new System.EventHandler(this.TBBoard_TextChanged);
             // 
+            // tbNSimul
+            // 
+            this.tbNSimul.Location = new System.Drawing.Point(829, 583);
+            this.tbNSimul.Name = "tbNSimul";
+            this.tbNSimul.Size = new System.Drawing.Size(89, 22);
+            this.tbNSimul.TabIndex = 23;
+            // 
+            // BTFMPrincipal
+            // 
+            this.BTFMPrincipal.Location = new System.Drawing.Point(1401, 574);
+            this.BTFMPrincipal.Name = "BTFMPrincipal";
+            this.BTFMPrincipal.Size = new System.Drawing.Size(123, 31);
+            this.BTFMPrincipal.TabIndex = 24;
+            this.BTFMPrincipal.Text = "Principal";
+            this.BTFMPrincipal.UseVisualStyleBackColor = true;
+            this.BTFMPrincipal.Click += new System.EventHandler(this.BTFMPrincipal_Click);
+            // 
             // Distribution
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1564, 791);
+            this.Controls.Add(this.BTFMPrincipal);
+            this.Controls.Add(this.tbNSimul);
             this.Controls.Add(this.TBBoard);
             this.Controls.Add(this.TBHero);
             this.Controls.Add(this.BTClearHero);
@@ -330,5 +351,7 @@ namespace PokerCalculator
         private System.Windows.Forms.Button BTClearHero;
         private System.Windows.Forms.TextBox TBHero;
         private System.Windows.Forms.TextBox TBBoard;
+        private TextBox tbNSimul;
+        private Button BTFMPrincipal;
     }
 }

@@ -11,15 +11,16 @@ namespace PokerCalculator
 
         public static int CARDS_TOTAL = 52;
 
-        public static int HIGH_CARD = 0x0000000;
-        public static int PAIR = 0x4000000;
-        public static int TWOPAIR = 0x8000000;
-        public static int TRIPS = 0xC000000;
-        public static int STRAIGHT = 0x10000000;
-        public static int FLUSH = 0x14000000;
-        public static int FULLHOUSE = 0x18000000;
-        public static int FOUR = 0x1C000000;
-        public static int STRAIGHTFLUSH = 0x20000000;
+        public const int HIGH_CARD = 0x0000000;
+        public const int PAIR = 0x4000000;
+        public const int TWOPAIR = 0x8000000;
+        public const int TRIPS = 0xC000000;
+        public const int STRAIGHT = 0x10000000;
+        public const int FLUSH = 0x14000000;
+        public const int FULLHOUSE = 0x18000000;
+        public const int FOUR = 0x1C000000;
+        public const int STRAIGHTFLUSH = 0x20000000;
+        public const int ROYALSTRAIGHTFLUSH = 0x24000000;
 
     }
 
@@ -30,124 +31,10 @@ namespace PokerCalculator
         //From left to right 2-A  and Clubs, Hearts, Spades, Diamonds
         //private ulong _cardSet;
 
-        //adapted from pokerstove gitlab project
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int bitCount(int subset)
-        {
-            // subset - 13 bits from right to left 2 - A
-            int c;
-            for (c = 0; subset > 0; c++)
-            {
-                subset &= subset - 1;
-            }
-            return c;
-        }
-
-        // Cleans lower significant bit
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int cleanLSB(int subset)
-        {
-            // subset - 13 bits from right to left 2 - A
-
-            return subset & (subset - 1);
-        }
-
-        // Cleans 2 Lower significant bits
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int cleanLSB2(int subset)
-        {
-            // subset - 13 bits from right to left 2 - A 
-            int c = subset & (subset - 1);
-            return c & (c - 1);
-        }
-
-        // Cleans lower significant bit
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int cleanLSB(int subset, int times)
-        {
-            // subset - 13 bits from right to left 2 - A
-            int c = subset;
-
-            for (int i = 0; i < times; i++)
-            {
-                c &= c - 1;
-            }
-            return c;
-        }
-
-        //Return the last bit set with 1
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int lastbit(int subset)
-        {
-            return CONSTANTS.MultiplyDeBruijnBitPosition[((UInt32)((subset & -subset) * 0x077CB531U)) >> 27];
-        }
-
-        // Check for a straight on a set of cards
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int straight(int subset)
-        {
-            //replicate A at the end to find lower sequences
-            subset = ((subset & 0b1000000000000) >> 12) | (subset << 1);
-
-            //subset &= subset << 1;
-            subset &= subset << 2;
-            subset &= subset << 1;
-            subset &= subset << 1;
-
-            subset >>= 1;
-
-            if (subset == 0) return 0;
-
-            // now set all bits after the Most Significant 
-            subset |= subset >> 1;
-            subset |= subset >> 2;
-            subset |= subset >> 4;
-            subset |= subset >> 8;
-
-            return subset;
-        }
-
-        // checks for a flush 
-        // in  : each variable contains all the cards of a given suit. Those owned by the player are set to one
-        // out : the number of cards of a suit held by a player - only used if greater or equal to 5  
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int flush(int C, int H, int S, int D, out int bitcc)
-        {
-            if ((bitcc = bitCount(C)) >= 5) return C;
-            if ((bitcc = bitCount(H)) >= 5) return H;
-            if ((bitcc = bitCount(S)) >= 5) return S;
-            if ((bitcc = bitCount(D)) >= 5) return D;
-            return 0;
-        }
-
-        // works better than the previous when testing all hands.
-        public static int flush2(int C, int H, int S, int D, out int bitcc)
-        {
-            bitcc = bitCount(C);
-
-            if (bitcc >= 5) return C;
-            if (bitcc > 2) return 0;
-
-            int acum = bitcc;
-
-            bitcc = bitCount(H);
-            if (bitcc >= 5) return H;
-            acum += bitcc;
-            if (acum > 2) return 0;
-
-            bitcc = bitCount(S);
-            if (bitcc >= 5) return S;
-            if (acum + bitcc > 2) return 0;
-
-            bitcc = 7 - acum - bitcc;
-            return D;
-
-        }
-
         // This is the main procedure that identifies a player's hand
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ProcessCardSet(ulong cardSet)
+        public static int GeneralProcessCardSet(ulong cardSet)
         {
             // uses bit 29,28 and 27 to store the hand strength
             // uses 26 bits to tiebreaker. How?
@@ -268,137 +155,129 @@ namespace PokerCalculator
             return 0;
         }
 
-        //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
+
+        //adapted from pokerstove gitlab project
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RandomHand(ulong heroCards, ulong currentBoard, int boardCardsLeft, out ulong boardCards, out ulong villainCards, Random R)
+        public static int bitCount(int subset)
         {
-            int next;
-            ulong n;
-            ulong allCards;
-            int j = 0;
-
-            allCards = heroCards | currentBoard;
-
-            while (j < boardCardsLeft)
+            // subset - 13 bits from right to left 2 - A
+            int c;
+            for (c = 0; subset > 0; c++)
             {
-                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                n = CONSTANTS.ONE << next;
-                while ((allCards & n) > 0)
-                {
-                    next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                    n = CONSTANTS.ONE << next;
-                }
-                allCards |= n;
-                j++;
+                subset &= subset - 1;
             }
-            boardCards = allCards ^ heroCards;
+            return c;
+        }
 
-            //villain first card
-            next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-            n = CONSTANTS.ONE << next;
-            while ((allCards & n) > 0)
+        // Cleans lower significant bit
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int cleanLSB(int subset)
+        {
+            // subset - 13 bits from right to left 2 - A
+
+            return subset & (subset - 1);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong cleanLSB(ulong subset)
+        {
+            return subset & (subset - 1);
+        }
+
+        // Cleans 2 Lower significant bits
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int cleanLSB2(int subset)
+        {
+            // subset - 13 bits from right to left 2 - A 
+            int c = subset & (subset - 1);
+            return c & (c - 1);
+        }
+
+        // Cleans lower significant bit
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int cleanLSB(int subset, int times)
+        {
+            // subset - 13 bits from right to left 2 - A
+            int c = subset;
+
+            for (int i = 0; i < times; i++)
             {
-                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                n = CONSTANTS.ONE << next;
+                c &= c - 1;
             }
-            allCards |= n;
+            return c;
+        }
 
-            //villain second card
-            next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-            n = CONSTANTS.ONE << next;
-            while ((allCards & n) > 0)
-            {
-                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                n = CONSTANTS.ONE << next;
-            }
-            allCards |= n;
+        //Return the last bit set with 1
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int lastbit(int subset)
+        {
+            return CONSTANTS.MultiplyDeBruijnBitPosition[((UInt32)((subset & -subset) * 0x077CB531U)) >> 27];
+        }
 
-            villainCards = allCards ^ heroCards ^ boardCards;
+        // Check for a straight on a set of cards
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int straight(int subset)
+        {
+            //replicate A at the end to find lower sequences
+            subset = ((subset & 0b1000000000000) >> 12) | (subset << 1);
+
+            //subset &= subset << 1;
+            subset &= subset << 2;
+            subset &= subset << 1;
+            subset &= subset << 1;
+
+            subset >>= 1;
+
+            if (subset == 0) return 0;
+
+            // now set all bits after the Most Significant 
+            subset |= subset >> 1;
+            subset |= subset >> 2;
+            subset |= subset >> 4;
+            subset |= subset >> 8;
+
+            return subset;
+        }
+
+        // checks for a flush 
+        // in  : each variable contains all the cards of a given suit. Those owned by the player are set to one
+        // out : the number of cards of a suit held by a player - only used if greater or equal to 5  
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int flush(int C, int H, int S, int D, out int bitcc)
+        {
+            if ((bitcc = bitCount(C)) >= 5) return C;
+            if ((bitcc = bitCount(H)) >= 5) return H;
+            if ((bitcc = bitCount(S)) >= 5) return S;
+            if ((bitcc = bitCount(D)) >= 5) return D;
+            return 0;
+        }
+
+        // works better than the previous when testing all hands.
+        public static int flush2(int C, int H, int S, int D, out int bitcc)
+        {
+            bitcc = bitCount(C);
+
+            if (bitcc >= 5) return C;
+            if (bitcc > 2) return 0;
+
+            int acum = bitcc;
+
+            bitcc = bitCount(H);
+            if (bitcc >= 5) return H;
+            acum += bitcc;
+            if (acum > 2) return 0;
+
+            bitcc = bitCount(S);
+            if (bitcc >= 5) return S;
+            if (acum + bitcc > 2) return 0;
+
+            bitcc = 7 - acum - bitcc;
+            return D;
 
         }
 
-        //Given hero and partial (or not) board cards and a villain guess hand, draw villain hand and the rest of the board
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, out ulong boardCards, out ulong villainCards, Random R)
-        {
-            ulong n;
-            ulong allCards;
-            int j = 0;
-
-            allCards = heroCards | currentBoard;
-
-            //Vilain pocket cards
-            villainCards = range[R.Next(0, rangesize)];
-            while ((allCards & villainCards) > 0)
-            {
-                villainCards = range[R.Next(0, rangesize)];
-            }
-
-            allCards |= villainCards;
-
-            //board
-            while (j < boardCardsLeft)
-            {
-                n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                while ((allCards & n) > 0)
-                {
-                    n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                }
-                allCards |= n;
-                j++;
-            }
-
-            boardCards = allCards ^ heroCards ^ villainCards;
-
-        }
-
-        //Do the same as the previous for more than one villain
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, out ulong boardCards, out ulong[] villainCards, Random R)
-        {
-            ulong n;
-            ulong allCards = 0;
-            int j = 0;
-            villainCards = new ulong[nVillains];
 
 
-            int v;
-            bool TryAgain = true;
-
-            //Vilains pocket pair
-            while (TryAgain)
-            {
-                TryAgain = false;
-                v = 0;
-                allCards = heroCards | currentBoard;
-                // If a duplicate card is drawn, the process must start over to avoid errors in the probability calculations.
-                // this may lead to infinite loops with large number of players with small and equal card range
-                while (!TryAgain && v < nVillains)
-                {
-                    villainCards[v] = range[v, R.Next(0, rangesize[v])];
-                    TryAgain = (allCards & villainCards[v]) > 0;
-                    allCards |= villainCards[v];
-                    v++;
-                }
-
-            }
-
-            boardCards = currentBoard;
-            //board
-            while (j < boardCardsLeft)
-            {
-                n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                while ((allCards & n) > 0)
-                {
-                    n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                }
-                allCards |= n;
-                boardCards |= n;
-                j++;
-            }
-
-        }
 
         // cards in array from 1 to 52 A to K
         // Card set must be from 2 to A
@@ -590,6 +469,26 @@ namespace PokerCalculator
             return (handNumber >> 26);
         }
 
+        public static string GetHandName(int handNumber)
+        {
+            int handPower = ReturnHandPower(handNumber) << 26;
+             switch (handPower)
+            {
+                case CONSTANTS.ROYALSTRAIGHTFLUSH: return "Royal Straight Flush";
+                case CONSTANTS.STRAIGHTFLUSH: return "Straight Flush";
+                case CONSTANTS.FOUR: return "Four";
+                case CONSTANTS.FULLHOUSE: return "FullHouse";
+                case CONSTANTS.FLUSH: return "Flush";
+                case CONSTANTS.STRAIGHT: return "Straight";
+                case CONSTANTS.TRIPS: return "Trips";
+                case CONSTANTS.TWOPAIR: return "Two Pairs";
+                case CONSTANTS.PAIR: return "Pair";
+                case CONSTANTS.HIGH_CARD: return "High Card";
+            }
+            return "";
+
+        }
+
         // Count all possible hands in a Texas Holdem game
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int[] EvaluateAllCombinations()
@@ -631,7 +530,7 @@ namespace PokerCalculator
                                     {
                                         cardset |= c6;
 
-                                        res[PEval.ReturnHandPower(PEval.ProcessCardSet(cardset))]++;
+                                        res[PEval.ReturnHandPower(HoldemEval.ProcessCardSet(cardset))]++;
 
                                         cardset ^= c6;
                                     }
