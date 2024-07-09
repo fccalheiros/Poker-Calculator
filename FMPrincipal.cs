@@ -1299,12 +1299,91 @@ namespace PokerCalculator
                 case 21: RandomDistTest(); break;
                 case 22: TestaOmaha(); break;
                 case 23: TestaEnumerated(); break;
+                case 24: TestaEnumeratedSpeed(); break;
                     // default: s += (_cardsValues[i] + 2).ToString(); break;
             }
 
         }
 
+        private void TestaEnumeratedSpeed()
+        {
+            int i = 10000;
+            Random R = new Random(DateTime.Now.Millisecond);
+            ulong [] heroHand;
+            ulong [] villainHand;
+            ulong [] boardCards;
+            int win = 0, loss = 0, tie = 0;
+
+            heroHand = new ulong[i];
+            villainHand = new ulong[i]; 
+            boardCards = new ulong[i];
+            DateTime dt, dt1, dt2;
+
+            int numberofCards = 3;
+            //string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
+
+
+            for (int j = 0; j < i;j++)
+            {
+                heroHand[j] = PEval.RandomCards(2, 0, R);
+                villainHand[j] = PEval.RandomCards(2, heroHand[j], R);
+                boardCards[j] = PEval.RandomCards(numberofCards, heroHand[j] | villainHand[j], R);
+            }
+
+            dt = DateTime.Now;
+            for (int j = 0; j < i; j++) {
+                HoldemEval.Enumerate(heroHand[j], villainHand[j], boardCards[j], out win, out loss, out tie);
+            }
+            dt1 = DateTime.Now;
+            for (int j = 0; j < i; j++)
+            {
+                HoldemEval.EnumerateFast(heroHand[j], villainHand[j], boardCards[j], out win, out loss, out tie);
+            }
+            dt2 = DateTime.Now;
+
+            TB01.Text = "Tempo Total Enumerated: " + (dt1 - dt).ToString() + "\r\n";
+            TB01.Text += "Tempo Total Enumerated 2: " + (dt2- dt1).ToString() + "\r\n ";
+        }
+
         private void TestaEnumerated()
+        {
+            int i = 30;
+            Random R = new Random(DateTime.Now.Millisecond);
+            bool fail = false;
+            ulong heroHand = 0;
+            ulong villainHand = 0;
+            ulong boardCards= 0;
+            int win = 0, loss = 0, tie = 0;
+            int win1 = 0, loss1 = 0, tie1 = 0;
+
+            int numberofCards = 4;
+
+            //HoldemEval.Enumerate2(PEval.ConvertStringToCardSet("4sKd"), PEval.ConvertStringToCardSet("9cAh"), boardCards, out win1, out loss1, out tie1);
+
+            while ( i > 0 & !fail) {
+                heroHand = PEval.RandomCards(2, 0, R);
+                villainHand = PEval.RandomCards(2,heroHand,R);
+                boardCards = PEval.RandomCards(numberofCards, heroHand | villainHand, R);
+                HoldemEval.Enumerate(heroHand, villainHand, boardCards, out win, out loss, out tie);
+                HoldemEval.EnumerateFast(heroHand, villainHand, boardCards, out  win1, out loss1, out tie1);
+                fail = ((win != win1) || (loss != loss1) || (tie != tie1));
+                i--;
+            }
+            TB01.Text = "";
+            if (fail)
+            {
+                TB01.Text += "Hero Hand: " + PEval.ToString(heroHand) + "\r\n";
+                TB01.Text += "Villain Hand: " + PEval.ToString(villainHand) + "\r\n";
+                TB01.Text += "Board: " + PEval.ToString(boardCards) + "\r\n";
+                TB01.Text += " WIN: " + win.ToString() + " - LOSS: " + loss.ToString() + " - TIE: " + tie.ToString() + "\r\n";
+                TB01.Text += " WIN1: " + win1.ToString() + " - LOSS1: " + loss1.ToString() + " - TIE1: " + tie1.ToString() + "\r\n";
+                TB01.Text += i.ToString(); 
+            }
+            else TB01.Text = "Great JOB!!!";
+
+        }
+
+        private void TestaEnumeratedOld()
         {
             string sVillainHand = "5s 3s";
             string sHeroHand = "Ad Ah";
@@ -1312,6 +1391,8 @@ namespace PokerCalculator
             ulong heroHand = PEval.ConvertStringToCardSet(sHeroHand);
             ulong villainHand = PEval.ConvertStringToCardSet(sVillainHand);
             ulong boardCards = PEval.ConvertStringToCardSet(sBoardCards);
+
+
 
             HoldemEval.Enumerate(heroHand, villainHand, boardCards, out int win, out int loss, out int tie);
             TB01.Text = "Hero Hand: " + sHeroHand + "\r\n";

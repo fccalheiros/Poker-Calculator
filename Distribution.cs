@@ -152,6 +152,7 @@ namespace PokerCalculator
             BTRUN.Location = new System.Drawing.Point(start + 14 * (size + space), BTRUN.Location.Y);
 
             BTCancelar.Location = new System.Drawing.Point(BTRUN.Location.X, BTRUN.Location.Y + BTRUN.Height + 20);
+            BTFMPrincipal.Location = new System.Drawing.Point(BTCancelar.Location.X, BTCancelar.Location.Y + BTCancelar.Height + 40);
 
             TBHero.Location = new System.Drawing.Point(BTClearAll.Location.X + BTClearAll.Width + size, start + 13 * (size + space) + 20);
             TBHero.Width = 4 * (size + space);

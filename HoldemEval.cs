@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace PokerCalculator
 {
@@ -158,6 +161,7 @@ namespace PokerCalculator
         }
 
         // board must have 0, 3 or 4 cards
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Enumerate(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
             win = 0; loss = 0; tie = 0;
@@ -201,6 +205,137 @@ namespace PokerCalculator
             }
 
 
+        }
+
+        // this is god, but slower
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Enumerate5Cards(ulong heroCards, ulong villainCards, out int win, out int loss, out int tie)
+        {
+
+            ulong c0, c1, c2, c3, c4;
+
+            ulong max0 = CONSTANTS.ONE << 51;
+            ulong min4 = 0;
+            ulong min3 = min4 << 1;
+            ulong min2 = min3 << 1;
+            ulong min1 = min2 << 1;
+            ulong min0 = min1 << 1;
+
+            ulong cardset = 0;
+            
+            ulong allInitialCards = heroCards | villainCards;
+
+            win = 0; loss = 0; tie = 0;
+
+            for (c0 = max0; c0 > min0; c0 >>= 1)
+            {
+                cardset |= c0;
+                for (c1 = c0 >> 1; c1 > min1; c1 >>= 1)
+                {
+                    cardset |= c1;
+                    for (c2 = c1 >> 1; c2 > min2; c2 >>= 1)
+                    {
+                        cardset |= c2;
+                        for (c3 = c2 >> 1; c3 > min3; c3 >>= 1)
+                        {
+                            cardset |= c3;
+                            for (c4 = c3 >> 1; c4 > min4; c4 >>= 1)
+                            {
+                                cardset |= c4;
+                                if ((cardset & allInitialCards) == 0)
+                                {
+                                    int heroResult = ProcessCardSet(heroCards, cardset);
+                                    int villainResult = ProcessCardSet(villainCards, cardset);
+                                    if (heroResult > villainResult) win++;
+                                    else if (heroResult < villainResult) loss++;
+                                    else tie++;
+                                }
+                                cardset ^= c4;
+                            }
+                            cardset ^= c3;
+                        }
+                        cardset ^= c2;
+                    }
+                    cardset ^= c1;
+                }
+                cardset ^= c0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Enumerate2Cards(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
+        {
+
+            ulong c0, c1;
+
+            ulong max0 = CONSTANTS.ONE << 51;
+            ulong min1 = 0;
+            ulong min0 = min1 << 1;
+
+            ulong cardset = 0;
+            ulong allInitialCards = heroCards | villainCards | boardCards;
+
+            win = 0; loss = 0; tie = 0;
+
+            for (c0 = max0; c0 > min0; c0 >>= 1)
+            {
+                cardset |= c0;
+                for (c1 = c0 >> 1; c1 > min1; c1 >>= 1)
+                {
+                    cardset |= c1;
+                    if ((cardset & allInitialCards) == 0)
+                    {
+                        int heroResult = ProcessCardSet(heroCards, cardset | boardCards);
+                        int villainResult = ProcessCardSet(villainCards, cardset | boardCards);
+                        if (heroResult > villainResult) win++;
+                        else if (heroResult < villainResult) loss++;
+                        else tie++;
+                    }
+                    cardset ^= c1;
+                }
+                cardset ^= c0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void EnumerateOneCard(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
+        {
+
+            ulong c0;
+
+            ulong max0 = CONSTANTS.ONE << 51;
+            ulong min0 = 0;
+
+            ulong cardset = 0;
+
+            ulong allInitialCards = heroCards | villainCards | boardCards;
+
+            win = 0; loss = 0; tie = 0;
+
+            for (c0 = max0; c0 > min0; c0 >>= 1)
+            {
+                cardset |= c0;
+                if ((cardset & allInitialCards) == 0)
+                {
+                    int heroResult = ProcessCardSet(heroCards, cardset | boardCards);
+                    int villainResult = ProcessCardSet(villainCards, cardset | boardCards);
+                    if (heroResult > villainResult) win++;
+                    else if (heroResult < villainResult) loss++;
+                    else tie++;
+                }
+                cardset ^= c0;
+            }
+        }
+
+        //this option is faster
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void EnumerateFast(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
+        {
+            win = 0; loss = 0; tie = 0;
+            int boardCount = bitCount(boardCards);
+            if (boardCount == 0) Enumerate5Cards(heroCards, villainCards, out win, out loss, out tie);
+            else if (boardCount == 3) Enumerate2Cards(heroCards, villainCards, boardCards, out win, out loss, out tie);
+            else if (boardCount == 4) EnumerateOneCard(heroCards, villainCards,boardCards, out win, out loss, out tie);
         }
     }
 

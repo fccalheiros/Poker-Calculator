@@ -288,8 +288,6 @@ namespace PokerCalculator
         }
 
 
-
-
         // cards in array from 1 to 52 A to K
         // Card set must be from 2 to A
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -560,6 +558,31 @@ namespace PokerCalculator
 
 
             return res;
+        }
+
+        public static ulong RandomCards(int numberOfCards, ulong forbiddenCards, Random R)
+        {
+            int next;
+            ulong ulongNext;
+            ulong cards = 0;
+            int j = 0;
+
+            
+            while (j < numberOfCards)
+            {
+                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
+                ulongNext = CONSTANTS.ONE << next;
+                while ((forbiddenCards & ulongNext) > 0)
+                {
+                    next = R.Next(0, CONSTANTS.CARDS_TOTAL);
+                    ulongNext = CONSTANTS.ONE << next;
+                }
+                cards |= ulongNext;
+                forbiddenCards |= ulongNext;
+                j++;
+            }
+            return cards;
+
         }
 
 
