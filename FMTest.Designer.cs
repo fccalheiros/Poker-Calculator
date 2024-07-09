@@ -1,7 +1,7 @@
 ﻿
 namespace PokerCalculator
 {
-    partial class FMPrincipal
+    partial class FMTest
     {
         /// <summary>
         /// Variável de designer necessária.

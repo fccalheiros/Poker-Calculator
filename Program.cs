@@ -10,7 +10,7 @@ namespace PokerCalculator
         /// </summary>
         /// 
         static public Distribution FMDistribution;
-        static public FMPrincipal FMMain;
+        static public FMTest FMMain;
 
         [STAThread]
         static void Main()
@@ -21,7 +21,7 @@ namespace PokerCalculator
             FMDistribution = new Distribution();
             FMDistribution.MainWindow = true;
 
-            FMMain = new FMPrincipal();
+            FMMain = new FMTest();
 
             Application.Run(FMDistribution);
         }

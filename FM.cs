@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace PokerCalculator
 {
-    public partial class FMPrincipal : Form
+    public partial class FM : Form
     {
 
         private int[,] SimulaGanhou;
@@ -158,7 +158,7 @@ namespace PokerCalculator
             tb.Text = s;
         }
 
-        public FMPrincipal()
+        public FM()
         {
             InitializeComponent();
 
