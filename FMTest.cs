@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
@@ -14,7 +15,10 @@ namespace PokerCalculator
         private int[,] SimulaEmpate;
 
         private ulong w, l, t;
+        private readonly object _lockResultado = new object();
         float et;
+        private bool cancelRequested;
+        private bool testRunning;
 
         /*
                 RoyalStraightFlush = 9,
@@ -32,6 +36,187 @@ namespace PokerCalculator
         //hands=["4 of a Kind", "Straight Flush", "Straight", "Flush", "High Card", "1 Pair", "2 Pair", "Royal Flush", "3 of a Kind", "Full House" ];
         private readonly int[] forca = { 7, 8, 4, 5, 0, 1, 2, 9, 3, 6 };
 
+
+        private void ShowUsageInstructions()
+        {
+            TB01.Text =
+                "Poker Calculator - test workspace\r\n\r\n" +
+                "How to use:\r\n" +
+                "1. Choose a test in the combo box.\r\n" +
+                "2. Fill Simulations when the test uses random or threaded simulations.\r\n" +
+                "3. Fill Pocket with two cards when required. Example: Ah Ad\r\n" +
+                "4. Fill Board only when required. Valid sizes: empty, flop, turn, or river. Example: As 7h 5c\r\n" +
+                "5. Use Ranges to open/select the range window before range tests.\r\n" +
+                "6. Use Stop to interrupt long tests that periodically report progress.\r\n\r\n" +
+                "Main tests:\r\n" +
+                "- TestaOmaha: fixed Omaha evaluator sanity check. No input required.\r\n" +
+                "- TestaPEVAL: enter an integer in Pocket to test lastbit.\r\n" +
+                "- TestaRandomGamesFast: enter Pocket and Simulations for a Holdem equity simulation.\r\n" +
+                "- TestaRandomGamesRangeFast / RangeFastN: enter Pocket, Simulations, optional Board, and select ranges first.\r\n" +
+                "- TestaThread / ThreadRange / ThreadRangeN: threaded simulations. Stop cannot interrupt already-started worker threads.\r\n" +
+                "- Full combination tests are very long and are intended for validation only.\r\n";
+            TB02.Text = "Ready.";
+        }
+
+        private void SetRunningState(bool running)
+        {
+            testRunning = running;
+            button1.Enabled = !running;
+            button2.Enabled = !running;
+            button3.Enabled = !running;
+            button4.Enabled = !running;
+            button5.Enabled = !running;
+            CBTeste.Enabled = !running;
+            buttonStop.Enabled = running;
+        }
+
+        private void AppendOutput(string text)
+        {
+            if (TB01.TextLength > 0) TB01.Text += "\r\n";
+            TB01.Text += text;
+        }
+
+        private bool ContinueAfterDoEvents()
+        {
+            Application.DoEvents();
+            if (!cancelRequested) return true;
+
+            TB02.Text = "Canceled by user.";
+            AppendOutput("Canceled by user. Partial output may be incomplete.");
+            return false;
+        }
+
+        private bool TryReadSimulationCount(out ulong simulationCount)
+        {
+            if (ulong.TryParse(TBSimul.Text.Trim(), out simulationCount) && simulationCount > 0)
+            {
+                return true;
+            }
+
+            AppendOutput("Invalid input: Simulations must be a positive integer. Example: 1000000");
+            return false;
+        }
+
+        private bool TryReadLastBitInput()
+        {
+            if (int.TryParse(TBPocket.Text.Trim(), out int _))
+            {
+                return true;
+            }
+
+            AppendOutput("Invalid input: TestaPEVAL expects an integer in Pocket.");
+            return false;
+        }
+
+        private bool TryReadPocketCards()
+        {
+            string pocket = TBPocket.Text.Replace(" ", "");
+            if (pocket.Length == 4 && PEval.IsValidStringCardSet(TBPocket.Text))
+            {
+                return true;
+            }
+
+            AppendOutput("Invalid input: Pocket must contain exactly two cards. Example: Ah Ad");
+            return false;
+        }
+
+        private bool TryReadBoardCards()
+        {
+            string board = TBBoard.Text.Replace(" ", "");
+            int boardCards = board.Length / 2;
+
+            if (board.Length % 2 == 0 && (boardCards == 0 || boardCards == 3 || boardCards == 4 || boardCards == 5) && PEval.IsValidStringCardSet(TBBoard.Text))
+            {
+                return true;
+            }
+
+            AppendOutput("Invalid input: Board must be empty, flop, turn, or river. Example: As 7h 5c");
+            return false;
+        }
+
+        private bool TryReadRangeSelection()
+        {
+            if (Program.FMDistribution != null && Program.FMDistribution.SelectionSize > 0)
+            {
+                return true;
+            }
+
+            AppendOutput("Invalid input: select at least one range in the Ranges window before running this test.");
+            return false;
+        }
+
+        private bool ValidateSelectedTest()
+        {
+            int selectedIndex = CBTeste.SelectedIndex;
+
+            if (selectedIndex < 0)
+            {
+                AppendOutput("Choose a test before running.");
+                return false;
+            }
+
+            switch (selectedIndex)
+            {
+                case 0:
+                case 1:
+                case 4:
+                case 21:
+                    return TryReadSimulationCount(out ulong _);
+                case 8:
+                case 13:
+                case 14:
+                    return TryReadSimulationCount(out ulong _) && TryReadPocketCards();
+                case 9:
+                case 17:
+                    return TryReadSimulationCount(out ulong _) && TryReadPocketCards() && TryReadRangeSelection();
+                case 15:
+                    return TryReadSimulationCount(out ulong _) && TryReadPocketCards() && TryReadBoardCards();
+                case 16:
+                case 19:
+                    return TryReadSimulationCount(out ulong _) && TryReadPocketCards() && TryReadBoardCards() && TryReadRangeSelection();
+                case 18:
+                    return TryReadSimulationCount(out ulong _) && TryReadPocketCards() && TryReadBoardCards() && TryReadRangeSelection();
+                case 10:
+                    return TryReadLastBitInput();
+                case 20:
+                    return TryReadSimulationCount(out ulong _);
+                default:
+                    return true;
+            }
+        }
+
+        private void RunSelectedTest()
+        {
+            switch (CBTeste.SelectedIndex)
+            {
+                case 0: TestaRandomGames(); break;
+                case 1: TestaRandomGames2(); break;
+                case 2: TestaTodasCombinações(); break;
+                case 3: TestaTodasCombinaçõesNovo(); break;
+                case 4: StressPokerEval(); break;
+                case 5: TestaVariasHands(); break;
+                case 6: Testa7Cartas(); break;
+                case 7: TestaUmaHand5Cartas(); break;
+                case 8: TestaRandomGames3(); break;
+                case 9: TestaRandomGamesRange(); break;
+                case 10: TestaPEVAL(); break;
+                case 11: TestaTodasCombinaçõesNovissimo(); break;
+                case 12: TestaTodasCombinaçõesNovissimoBIT(); break;
+                case 13: TestaRandomGamesFast(); break;
+                case 14: TestaRandomGamesFastCompare(); break;
+                case 15: TestaThread(); break;
+                case 16: TestaThreadRange(); break;
+                case 17: TestaRandomGamesRangeFast(); break;
+                case 18: TestaRandomGamesRangeFastN(); break;
+                case 19: TestaThreadRangeN(); break;
+                case 20: ORDENAMAOS(); break;
+                case 21: RandomDistTest(); break;
+                case 22: TestaOmaha(); break;
+                case 23: TestaEnumerated(); break;
+                case 24: TestaEnumeratedSpeed(); break;
+                default: ShowUsageInstructions(); break;
+            }
+        }
 
         private void IniciaSimula()
         {
@@ -89,16 +274,21 @@ namespace PokerCalculator
             nfi.PercentDecimalDigits = 2;
             CARD c = new CARD();
             CARD c1 = new CARD();
-            string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
+            string s = "Result summary\r\n";
+            s += "Simulations: " + nSimul.ToString("N0", nfi) + "\r\n";
+            s += "Elapsed: " + (DateTime.Now - dt).ToString() + "\r\n";
 
             c.SET(carta + 1);
             c1.SET(carta1 + 1);
-            s += "\r\n" + c.ToString() + c1.ToString() + " - " + SimulaGanhou[carta, carta1].ToString() + " : " + SimulaPerdeu[carta, carta1].ToString() + " : " + SimulaEmpate[carta, carta1].ToString();
+            s += "Pocket: " + c.ToString() + " " + c1.ToString() + "\r\n";
             float g = ((float)(SimulaGanhou[carta, carta1]) / (float)Convert.ToDecimal(SimulaGanhou[carta, carta1] + SimulaPerdeu[carta, carta1] + SimulaEmpate[carta, carta1]));
             float p = ((float)(SimulaPerdeu[carta, carta1]) / (float)Convert.ToDecimal(SimulaGanhou[carta, carta1] + SimulaPerdeu[carta, carta1] + SimulaEmpate[carta, carta1]));
             float e = 1 - p - g;
             float equity = g + e / 2;
-            s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
+            s += "Wins: " + SimulaGanhou[carta, carta1].ToString("N0", nfi) + " (" + g.ToString("P", nfi) + ")\r\n";
+            s += "Losses: " + SimulaPerdeu[carta, carta1].ToString("N0", nfi) + " (" + p.ToString("P", nfi) + ")\r\n";
+            s += "Ties: " + SimulaEmpate[carta, carta1].ToString("N0", nfi) + " (" + e.ToString("P", nfi) + ")\r\n";
+            s += "Equity: " + equity.ToString("P", nfi);
 
             tb.Text = s;
         }
@@ -108,13 +298,18 @@ namespace PokerCalculator
 
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.PercentDecimalDigits = 2;
-            string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
-            s += "\r\n" + cards + " - " + win.ToString() + " : " + lost.ToString() + " : " + tie.ToString();
+            string s = "Result summary\r\n";
+            s += "Pocket: " + cards + "\r\n";
+            s += "Simulations: " + nSimul.ToString("N0", nfi) + "\r\n";
+            s += "Elapsed: " + (DateTime.Now - dt).ToString() + "\r\n";
             float g = ((float)(win) / (float)Convert.ToDecimal(win + lost + tie));
             float p = ((float)(lost) / (float)Convert.ToDecimal(win + lost + tie));
             float e = 1 - p - g;
             float equity = g + e / 2;
-            s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
+            s += "Wins: " + win.ToString("N0", nfi) + " (" + g.ToString("P", nfi) + ")\r\n";
+            s += "Losses: " + lost.ToString("N0", nfi) + " (" + p.ToString("P", nfi) + ")\r\n";
+            s += "Ties: " + tie.ToString("N0", nfi) + " (" + e.ToString("P", nfi) + ")\r\n";
+            s += "Equity: " + equity.ToString("P", nfi);
 
             tb.Text = s;
         }
@@ -124,13 +319,19 @@ namespace PokerCalculator
 
             NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
             nfi.PercentDecimalDigits = 2;
-            string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
-            s += "\r\n" + cards + " - " + win.ToString() + " : " + lost.ToString() + " : " + tie.ToString();
+            string s = "Result summary\r\n";
+            s += "Pocket: " + cards + "\r\n";
+            s += "Simulations: " + nSimul.ToString("N0", nfi) + "\r\n";
+            s += "Elapsed: " + (DateTime.Now - dt).ToString() + "\r\n";
             float g = ((float)(win) / (float)Convert.ToDecimal(nSimul));
             float p = ((float)(lost) / (float)Convert.ToDecimal(nSimul));
             float e = 1 - p - g;
             float equity = g + eqTie / (float)Convert.ToDecimal(nSimul);
-            s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
+            s += "Wins: " + win.ToString("N0", nfi) + " (" + g.ToString("P", nfi) + ")\r\n";
+            s += "Losses: " + lost.ToString("N0", nfi) + " (" + p.ToString("P", nfi) + ")\r\n";
+            s += "Ties: " + tie.ToString("N0", nfi) + " (" + e.ToString("P", nfi) + ")\r\n";
+            s += "Tie equity: " + eqTie.ToString("N2", nfi) + "\r\n";
+            s += "Equity: " + equity.ToString("P", nfi);
 
             tb.Text = s;
         }
@@ -142,18 +343,21 @@ namespace PokerCalculator
             nfi.PercentDecimalDigits = 2;
             CARD c = new CARD();
             CARD c1 = new CARD();
-            string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
+            string s = "Distribution summary\r\n";
+            s += "Simulations: " + nSimul.ToString("N0", nfi) + "\r\n";
+            s += "Elapsed: " + (DateTime.Now - dt).ToString() + "\r\n";
+            s += "Pocket - Wins : Losses : Ties - Equity\r\n";
             for (int i = 0; i < 52; i++)
                 for (int j = i + 1; j < 52; j++)
                 {
                     c.SET(i + 1);
                     c1.SET(j + 1);
-                    s += "\r\n" + c.ToString() + c1.ToString() + " - " + SimulaGanhou[i, j].ToString() + " : " + SimulaPerdeu[i, j].ToString() + " : " + SimulaEmpate[i, j].ToString();
+                    s += "\r\n" + c.ToString() + " " + c1.ToString() + " - " + SimulaGanhou[i, j].ToString("N0", nfi) + " : " + SimulaPerdeu[i, j].ToString("N0", nfi) + " : " + SimulaEmpate[i, j].ToString("N0", nfi);
                     float g = ((float)(SimulaGanhou[i, j]) / (float)Convert.ToDecimal(SimulaGanhou[i, j] + SimulaPerdeu[i, j] + SimulaEmpate[i, j]));
                     float p = ((float)(SimulaPerdeu[i, j]) / (float)Convert.ToDecimal(SimulaGanhou[i, j] + SimulaPerdeu[i, j] + SimulaEmpate[i, j]));
                     float e = 1 - p - g;
                     float equity = g + e / 2;
-                    s += " --- " + g.ToString("P", nfi) + " : " + p.ToString("P", nfi) + " : " + e.ToString("P", nfi) + " - Equity = " + equity.ToString("P", nfi);
+                    s += " - " + equity.ToString("P", nfi);
                 }
             tb.Text = s;
         }
@@ -161,7 +365,8 @@ namespace PokerCalculator
         public FMTest()
         {
             InitializeComponent();
-
+            CBTeste.SelectedIndex = 22;
+            ShowUsageInstructions();
         }
 
         private void testehandtwopairs()
@@ -311,7 +516,7 @@ namespace PokerCalculator
 
                                             //TB01.SelectionStart = TB01.TextLength;
                                             //TB01.ScrollToCaret();
-                                            Application.DoEvents();
+                                            if (!ContinueAfterDoEvents()) return;
                                         }
                                     }
             TB01.Text = "\r\n" + cont.ToString();
@@ -385,7 +590,7 @@ namespace PokerCalculator
 
                                                                                     //TB01.SelectionStart = TB01.TextLength;
                                                                                     //TB01.ScrollToCaret();
-                                                                                    Application.DoEvents();
+                                                                                    if (!ContinueAfterDoEvents()) return;
                                                                                 }
                                         */
                                     }
@@ -463,7 +668,14 @@ namespace PokerCalculator
             TB01.Text = hhhh.ToString();
 
             for (ulong i = 0; i < totSimul; i++)
+            {
                 RankPokerHand(num, suit, out hand, out seq, out flush, out index);
+                if ((i & 1048575) == 1048575)
+                {
+                    TB02.Text = i.ToString("N0") + " / " + totSimul.ToString("N0") + " - " + (DateTime.Now - dtIni).ToString();
+                    if (!ContinueAfterDoEvents()) return;
+                }
+            }
             TB02.Text = (DateTime.Now - dtIni).ToString();
         }
         private void TestaTodasCombinações()
@@ -505,7 +717,7 @@ namespace PokerCalculator
 
                                             //TB01.SelectionStart = TB01.TextLength;
                                             //TB01.ScrollToCaret();
-                                            Application.DoEvents();
+                                            if (!ContinueAfterDoEvents()) return;
                                         }
                                     }
             TB01.Text = "\r\n" + cont.ToString();
@@ -599,7 +811,7 @@ namespace PokerCalculator
                 if ((i & 16383) == 16383)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             PrintResultado(TB01, dtini, nSimul);
@@ -651,7 +863,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -711,7 +923,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -772,7 +984,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -834,7 +1046,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -900,7 +1112,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -988,7 +1200,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -1030,12 +1242,14 @@ namespace PokerCalculator
 
         public void ResultCallback(ulong _w, ulong _l, ulong _t, float _et)
         {
-            w += _w;
-            l += _l;
-            t += _t;
-            et += _et;
-            //Console.WriteLine("Acionou a callback: " + w.ToString() + " " + l.ToString() + " " + t.ToString() + " " + et.ToString() + "  " + DateTime.Now.ToString()+ "." + DateTime.Now.Millisecond.ToString());
-        }
+            lock (_lockResultado)
+            {
+                w += _w;
+                l += _l;
+                t += _t;
+                et += _et;
+            }
+         }
 
         private void TestaThreadRange()
         {
@@ -1120,6 +1334,69 @@ namespace PokerCalculator
         }
 
         private void ORDENAMAOS()
+        {
+
+            DateTime dtini = DateTime.Now;
+
+            ulong nSimul = Convert.ToUInt64(TBSimul.Text);
+
+            ulong herohand;
+            ulong currentBoard = 0;
+            int boardCardsLeft = 5;
+            int nThreads = 8;
+            ulong n = nSimul / (ulong)nThreads;
+
+            string[] pockets = new string[1326];
+            float[] equities = new float[1326];
+
+            int idx = 0;
+
+            ulong c0, c1;
+            for (c0 = 1; c0 < (CONSTANTS.ONE << 13); c0 <<= 1)
+            {
+                for (c1 = c0 << 1; c1 < (CONSTANTS.ONE << 26); c1 <<= 1)
+                {
+                    w = 0;  t = 0;  l = 0;  et = 0;
+                    herohand = c0 | c1;
+                    PokerMonteCarloServer[] server = new PokerMonteCarloServer[nThreads];
+                    Task[] tasks = new Task[nThreads];
+
+                    for (int i = 0; i < nThreads; i++)
+                    {
+                        server[i] = new PokerMonteCarloServer(herohand, n, currentBoard, boardCardsLeft, new simulCallBack(ResultCallback));
+                        PokerMonteCarloServer srv = server[i];
+                        tasks[i] = Task.Run(() => srv.Simulate());
+                    }
+
+                    Task.WaitAll(tasks);
+
+                    pockets[idx] = PEval.ToString(herohand);
+                    equities[idx] = ((float)w + (float)et) / (float)nSimul;
+
+                    idx++;
+                }
+            }
+             
+            Array.Sort(equities, pockets,0, idx);
+
+            NumberFormatInfo nfi = new CultureInfo("pt-BR", false).NumberFormat;
+            nfi.PercentDecimalDigits = 4;
+
+            string s = "Pocket - Equity\r\n\r\n";
+
+            for (int i = idx - 1; i >= 0; i--)
+            {
+                s += pockets[i] + " - " + equities[i].ToString("P", nfi)  + "\r\n";
+            }
+
+            s += "\r\n";
+            s += "Simulações por mão: " + nSimul.ToString("N0", nfi) + "\r\n";
+            s += "Elapsed: " + (DateTime.Now - dtini);
+
+            TB01.Text = s;
+        }
+
+        private void ORDENAMAOSold()
         {
             w = 0; t = 0; l = 0; et = 0;
             DateTime dtini = DateTime.Now;
@@ -1237,7 +1514,7 @@ namespace PokerCalculator
                 if ((i & mask) == mask)
                 {
                     TB02.Text = i.ToString("N", nfi) + " - " + (Convert.ToDecimal(i) / Convert.ToDecimal(nSimul)).ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
             }
             TB02.Text = nSimul.ToString("N", nfi) + " - " + 1.ToString("P", nfi) + " - " + (DateTime.Now - dtini).ToString();
@@ -1270,36 +1547,40 @@ namespace PokerCalculator
 
         private void button1_Click(object sender, EventArgs e)
         {
-
-            switch (CBTeste.SelectedIndex)
+            if (testRunning)
             {
+                AppendOutput("A test is already running. Use Stop before starting another one.");
+                return;
+            }
 
-                case 0: TestaRandomGames(); break;
-                case 1: TestaRandomGames2(); break;
-                case 2: TestaTodasCombinações(); break;
-                case 3: TestaTodasCombinaçõesNovo(); break;
-                case 4: StressPokerEval(); break;
-                case 5: TestaVariasHands(); break;
-                case 6: Testa7Cartas(); break;
-                case 7: TestaUmaHand5Cartas(); break;
-                case 8: TestaRandomGames3(); break;
-                case 9: TestaRandomGamesRange(); break;
-                case 10: TestaPEVAL(); break;
-                case 11: TestaTodasCombinaçõesNovissimo(); break;
-                case 12: TestaTodasCombinaçõesNovissimoBIT(); break;
-                case 13: TestaRandomGamesFast(); break;
-                case 14: TestaRandomGamesFastCompare(); break;
-                case 15: TestaThread(); break;
-                case 16: TestaThreadRange(); break;
-                case 17: TestaRandomGamesRangeFast(); break;
-                case 18: TestaRandomGamesRangeFastN(); break;
-                case 19: TestaThreadRangeN(); break;
-                case 20: ORDENAMAOS(); break;
-                case 21: RandomDistTest(); break;
-                case 22: TestaOmaha(); break;
-                case 23: TestaEnumerated(); break;
-                case 24: TestaEnumeratedSpeed(); break;
-                    // default: s += (_cardsValues[i] + 2).ToString(); break;
+            cancelRequested = false;
+            TB01.Text = "";
+            TB02.Text = "Validating input...";
+
+            if (!ValidateSelectedTest())
+            {
+                TB02.Text = "Input error.";
+                return;
+            }
+
+            try
+            {
+                SetRunningState(true);
+                TB02.Text = "Running " + CBTeste.Text + "...";
+                RunSelectedTest();
+                if (!cancelRequested) TB02.Text = "Finished " + CBTeste.Text + ".";
+            }
+            catch (Exception ex)
+            {
+                TB02.Text = "Error.";
+                TB01.Text = "The test could not finish.\r\n\r\n" +
+                            "Test: " + CBTeste.Text + "\r\n" +
+                            "Message: " + ex.Message + "\r\n\r\n" +
+                            "Check Pocket, Board, Simulations, and range selection, then try again.";
+            }
+            finally
+            {
+                SetRunningState(false);
             }
 
         }
@@ -1513,7 +1794,7 @@ namespace PokerCalculator
                     TB01.Text = i.ToString();
                     TB01.SelectionStart = TB01.TextLength;
                     TB01.ScrollToCaret();
-                    Application.DoEvents();
+                    if (!ContinueAfterDoEvents()) return;
                 }
 
 
@@ -1536,7 +1817,8 @@ namespace PokerCalculator
 
         private void button4_Click(object sender, EventArgs e)
         {
-            TB01.Text = "";
+            cancelRequested = false;
+            ShowUsageInstructions();
             //TestaVariasHands();
             //Testa7Cartas();
             //TestaUmaHand5Cartas();
@@ -1753,23 +2035,38 @@ namespace PokerCalculator
 
         }
 
+        private void buttonStop_Click(object sender, EventArgs e)
+        {
+            cancelRequested = true;
+            buttonStop.Enabled = false;
+            TB02.Text = "Stop requested. Waiting for the current checkpoint...";
+        }
+
         private void RandomDistTest()
         {
             Random R = new Random(DateTime.Now.Millisecond);
             int[] c = new int[4];
+            int total = Convert.ToInt32(TBSimul.Text);
 
             for (int i = 0; i < 4; i++) c[i] = 0;
 
 
-            for (int i = 0; i < Convert.ToInt32(TBSimul.Text); i++)
+            for (int i = 0; i < total; i++)
             {
                 int next = R.Next(0, 4);
                 //while (next == 2 || next == 3)
                 //   next = R.Next(0, 4);
                 c[next]++;
+                if ((i & 65535) == 65535)
+                {
+                    TB02.Text = i.ToString("N0") + " / " + total.ToString("N0");
+                    if (!ContinueAfterDoEvents()) return;
+                }
             }
 
-            for (int i = 0; i < 4; i++) TB01.Text += i.ToString() + " - " + c[i].ToString() + "\r\n";
+            TB01.Text = "Random distribution test\r\n";
+            TB01.Text += "Total: " + total.ToString("N0") + "\r\n";
+            for (int i = 0; i < 4; i++) TB01.Text += i.ToString() + " - " + c[i].ToString("N0") + "\r\n";
         }
     }
 }
