@@ -1,55 +1,74 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PokerCalculator
 {
     class OmahaEval : PEval
     {
-        //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
+        // Evaluate the best Omaha hand using exactly two pocket cards and three board cards.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ProcessCardSet(ulong cardSet)
+        public static int ProcessCardSet(ulong pocketcards, ulong boardcards)
         {
-            return PEval.GeneralProcessCardSet(cardSet);
+            StripCardSet(pocketcards, out ulong[] pocket);
+            StripCardSet(boardcards, out ulong[] board);
+            return ProcessCardSet(pocket, board);
         }
 
-        //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ProcessCardSet(ulong pocketcards, ulong board)
+        public static int ProcessCardSet(ulong[] pocketcards, ulong boardcards)
         {
-            return PEval.GeneralProcessCardSet(pocketcards | board);
+            StripCardSet(boardcards, out ulong[] board);
+            return ProcessCardSet(pocketcards, board);
         }
 
-        public static int ProcessCardSet(ulong [] pocketcards, ulong board)
+
+        public static int ProcessCardSet(ulong[] pocketcards, ulong[] board)
         {
             int finalResult = 0;
-            int tempResult;
 
-            for (int i = 0; i < pocketcards.Length - 1; i++) {
-                for (int j = i + 1; j < pocketcards.Length; j++) {
-                    tempResult = ProcessCardSet(pocketcards[i] | pocketcards[j] | board);
-                    if (tempResult > finalResult) { 
-                        finalResult = tempResult;
+            for (int h1 = 0; h1 < pocketcards.Length - 1; h1++)
+            {
+                for (int h2 = h1 + 1; h2 < pocketcards.Length; h2++)
+                {
+                    ulong holeCards = pocketcards[h1] | pocketcards[h2];
+
+                    for (int b1 = 0; b1 < board.Length - 2; b1++)
+                    {
+                        for (int b2 = b1 + 1; b2 < board.Length - 1; b2++)
+                        {
+                            for (int b3 = b2 + 1; b3 < board.Length; b3++)
+                            {
+                                int tempResult = PEval.GeneralProcessCardSet(holeCards | board[b1] | board[b2] | board[b3]);
+
+                                if (tempResult > finalResult)
+                                {
+                                    finalResult = tempResult;
+                                }
+                            }
+                        }
                     }
                 }
             }
+
             return finalResult;
         }
 
         public static void StripCardSet(ulong cardSet, out ulong[] stripedCards)
         {
-            int i = 0;
-            ulong temp;
-            stripedCards = new ulong[4];
+            ulong[] tempCards = new ulong[52];
+            int count = 0;
 
-            for (; i < 4; i++)
+            while (cardSet != 0)
             {
-                temp = cleanLSB(cardSet);
-                stripedCards[i] = cardSet ^ temp;
+                ulong temp = cleanLSB(cardSet);
+                tempCards[count++] = cardSet ^ temp;
                 cardSet = temp;
+            }
+
+            stripedCards = new ulong[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                stripedCards[i] = tempCards[i];
             }
         }
     }

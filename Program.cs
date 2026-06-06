@@ -6,9 +6,8 @@ namespace PokerCalculator
     static class Program
     {
         /// <summary>
-        /// Ponto de entrada principal para o aplicativo.
+        /// Main application entry point.
         /// </summary>
-        /// 
         static public Distribution FMDistribution;
         static public FMTest FMMain;
 

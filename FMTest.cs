@@ -362,8 +362,7 @@ namespace PokerCalculator
                                         //pe.RankPokerHandSEVENCards(ref i);
 
                                         //ulong cardset = PEval.ConvertArrayToCardSet(ref i);
-                                        ulong cardset = CONSTANTS.ONE << i[0] | CONSTANTS.ONE << i[1] | CONSTANTS.ONE << i[2] |
-                                            CONSTANTS.ONE << i[3] | CONSTANTS.ONE << i[4] | CONSTANTS.ONE << i[5] | CONSTANTS.ONE << i[6];
+                                        ulong cardset = CONSTANTS.ONE << i[0] | CONSTANTS.ONE << i[1] | CONSTANTS.ONE << i[2] | CONSTANTS.ONE << i[3] | CONSTANTS.ONE << i[4] | CONSTANTS.ONE << i[5] | CONSTANTS.ONE << i[6];
 
                                         int strength = HoldemEval.ProcessCardSet(cardset);
                                         int game = PEval.ReturnHandPower(strength);
@@ -1309,13 +1308,13 @@ namespace PokerCalculator
         {
             int i = 10000;
             Random R = new Random(DateTime.Now.Millisecond);
-            ulong [] heroHand;
-            ulong [] villainHand;
-            ulong [] boardCards;
+            ulong[] heroHand;
+            ulong[] villainHand;
+            ulong[] boardCards;
             int win = 0, loss = 0, tie = 0;
 
             heroHand = new ulong[i];
-            villainHand = new ulong[i]; 
+            villainHand = new ulong[i];
             boardCards = new ulong[i];
             DateTime dt, dt1, dt2;
 
@@ -1323,7 +1322,7 @@ namespace PokerCalculator
             //string s = "\r\n Tempo Total (" + nSimul.ToString("D") + " ) :" + (DateTime.Now - dt).ToString();
 
 
-            for (int j = 0; j < i;j++)
+            for (int j = 0; j < i; j++)
             {
                 heroHand[j] = PEval.RandomCards(2, 0, R);
                 villainHand[j] = PEval.RandomCards(2, heroHand[j], R);
@@ -1331,7 +1330,8 @@ namespace PokerCalculator
             }
 
             dt = DateTime.Now;
-            for (int j = 0; j < i; j++) {
+            for (int j = 0; j < i; j++)
+            {
                 HoldemEval.Enumerate(heroHand[j], villainHand[j], boardCards[j], out win, out loss, out tie);
             }
             dt1 = DateTime.Now;
@@ -1342,7 +1342,7 @@ namespace PokerCalculator
             dt2 = DateTime.Now;
 
             TB01.Text = "Tempo Total Enumerated: " + (dt1 - dt).ToString() + "\r\n";
-            TB01.Text += "Tempo Total Enumerated 2: " + (dt2- dt1).ToString() + "\r\n ";
+            TB01.Text += "Tempo Total Enumerated 2: " + (dt2 - dt1).ToString() + "\r\n ";
         }
 
         private void TestaEnumerated()
@@ -1352,7 +1352,7 @@ namespace PokerCalculator
             bool fail = false;
             ulong heroHand = 0;
             ulong villainHand = 0;
-            ulong boardCards= 0;
+            ulong boardCards = 0;
             int win = 0, loss = 0, tie = 0;
             int win1 = 0, loss1 = 0, tie1 = 0;
 
@@ -1360,12 +1360,13 @@ namespace PokerCalculator
 
             //HoldemEval.Enumerate2(PEval.ConvertStringToCardSet("4sKd"), PEval.ConvertStringToCardSet("9cAh"), boardCards, out win1, out loss1, out tie1);
 
-            while ( i > 0 & !fail) {
+            while (i > 0 & !fail)
+            {
                 heroHand = PEval.RandomCards(2, 0, R);
-                villainHand = PEval.RandomCards(2,heroHand,R);
+                villainHand = PEval.RandomCards(2, heroHand, R);
                 boardCards = PEval.RandomCards(numberofCards, heroHand | villainHand, R);
                 HoldemEval.Enumerate(heroHand, villainHand, boardCards, out win, out loss, out tie);
-                HoldemEval.EnumerateFast(heroHand, villainHand, boardCards, out  win1, out loss1, out tie1);
+                HoldemEval.EnumerateFast(heroHand, villainHand, boardCards, out win1, out loss1, out tie1);
                 fail = ((win != win1) || (loss != loss1) || (tie != tie1));
                 i--;
             }
@@ -1377,7 +1378,7 @@ namespace PokerCalculator
                 TB01.Text += "Board: " + PEval.ToString(boardCards) + "\r\n";
                 TB01.Text += " WIN: " + win.ToString() + " - LOSS: " + loss.ToString() + " - TIE: " + tie.ToString() + "\r\n";
                 TB01.Text += " WIN1: " + win1.ToString() + " - LOSS1: " + loss1.ToString() + " - TIE1: " + tie1.ToString() + "\r\n";
-                TB01.Text += i.ToString(); 
+                TB01.Text += i.ToString();
             }
             else TB01.Text = "Great JOB!!!";
 
@@ -1405,18 +1406,18 @@ namespace PokerCalculator
         private void TestaOmaha()
         {
             ulong pocket = 0b1100000000000000000000000000000000010000000000010000;
-            ulong board  = 0b0011100000000000000000100000100000000000000000000000;
+            ulong board = 0b0011100000000000000000100000100000000000000000000000;
             ulong[] cards;
             OmahaEval.StripCardSet(pocket, out cards);
-            TB01.Text =  Convert.ToString((long)pocket,2).PadLeft(52,'0') + "\r\n";
-            for (int i = 0; i < 4;i++)
+            TB01.Text = Convert.ToString((long)pocket, 2).PadLeft(52, '0') + "\r\n";
+            for (int i = 0; i < 4; i++)
             {
-                TB01.Text += Convert.ToString((long)cards[i], 2).PadLeft(52,'0') + "\r\n";
+                TB01.Text += Convert.ToString((long)cards[i], 2).PadLeft(52, '0') + "\r\n";
             }
             TB01.Text += PEval.ToString(pocket) + "\r\n";
             TB01.Text += PEval.ToString(board) + "\r\n";
             int hand = OmahaEval.ProcessCardSet(cards, board);
-            TB01.Text += Convert.ToString(hand,16) + "\r\n";
+            TB01.Text += Convert.ToString(hand, 16) + "\r\n";
             TB01.Text += PEval.GetHandName(hand);
         }
 
@@ -1442,7 +1443,7 @@ namespace PokerCalculator
             hand.SetHand(p, b);
             hand1.SetHand(p1, b);
 
-            // Royal x straigth flush
+            // Royal x straight flush.
             if (hand.Compare(hand1) != 1)
                 TB01.Text = "Erro teste Royal x Straight";
             else
@@ -1453,7 +1454,7 @@ namespace PokerCalculator
             TB01.Text += HoldemPokerHand.GetHandName(hand1.ReturnPokerHand(ref c)) + "\r\n";
 
 
-            // Four x Four
+            // Four x four.
             int[] p2 = { 13, 14 };
             int[] b1 = { 12, 25, 38, 51, 01 };
             int[] p3 = { 15, 16 };
@@ -1466,7 +1467,7 @@ namespace PokerCalculator
             TB01.Text += hand.ToString() + "\r\n";
             TB01.Text += hand1.ToString() + "\r\n";
 
-            // Four x full
+            // Four x full house.
             int[] p4 = { 13, 51 };
             int[] b2 = { 12, 25, 38, 14, 01 };
             int[] p5 = { 15, 27 };
@@ -1574,26 +1575,31 @@ namespace PokerCalculator
 
         private void Testa7Cartas()
         {
+            int[][] testes =
+            {
+                new int[] { 51, 47, 50, 48, 49 },
+                new int[] { 01, 12, 25, 38, 14, 13, 51 },
+                new int[] { 12, 25, 38, 14, 01, 15, 27 }
+            };
 
+            TB01.Text = "";
 
-            int[] p = { 14, 15, 16, 17, 18, 13, 12 };
+            foreach (int[] cartas in testes)
+            {
+                ulong cardSet = 0;
 
-            //int[] p2 = { 13, 14, 12, 25, 38, 51, 01 };
+                foreach (int carta in cartas)
+                {
+                    cardSet |= 1UL << carta;
+                }
 
-            int[] p2 = { 01, 12, 25, 38, 14, 13, 51 };
+                int result = HoldemEval.ProcessCardSet(cardSet);
 
-            int[] p3 = { 12, 25, 38, 14, 01, 15, 27 };
-
-            RankPokerHand(p, out ulong hand, out int seq, out int flush, out int index);
-            PrintHand(hand, seq, flush, index);
-
-            RankPokerHand(p2, out hand, out seq, out flush, out index);
-            PrintHand(hand, seq, flush, index);
-
-            RankPokerHand(p3, out hand, out seq, out flush, out index);
-            PrintHand(hand, seq, flush, index);
+                TB01.Text += PEval.ToString(cardSet) + "\r\n";
+                TB01.Text += Convert.ToString(result, 16) + "\r\n";
+                TB01.Text += PEval.GetHandName(result) + "\r\n\r\n";
+            }
         }
-
         private void TestaRankPokerHand(int[] num, int[] suit)
         {
 
@@ -1630,7 +1636,7 @@ namespace PokerCalculator
             TB01.Text += "\r\nFlush: " + flush.ToString();
 
             TB01.Text += "\r\n Divisão sequencia: " + (seq / (seq & -seq)).ToString();
-            //TB01.Text += "\r\n Divisão minha: " + (seq & 15).ToString();
+            //TB01.Text += "\r\n My division: " + (seq & 15).ToString();
             TB01.Text += "\r\n ---------------------------------------------------";
 
         }
@@ -1700,7 +1706,7 @@ namespace PokerCalculator
         private void RankPokerHand(int[] num, int[] suit, out ulong hand, out int seq, out int flush, out int index)
         {
 
-            // falta resolver a comparação do A2345 x outras sequencias
+            // Review A2345 comparison against other sequences.
 
             hand = 0;
             seq = 0;
@@ -1723,7 +1729,7 @@ namespace PokerCalculator
             index -= (seq / (seq & -seq) == 31) | (seq == 4111) ? 3 : 1;
             index -= (flush > 0 ? 1 : 0) * (seq == 7936 ? -5 : 1);
 
-            // zerar o bit 48 para poder comparar sequencias A2345  com as demais
+            // Clear bit 48 to compare A2345 sequences with the other sequences.
             if (seq == 4111) hand ^= 281474976710656;
             index = forca[index];
 

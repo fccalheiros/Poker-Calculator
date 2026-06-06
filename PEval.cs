@@ -23,12 +23,18 @@ namespace PokerCalculator
         public const int ROYALSTRAIGHTFLUSH = 0x24000000;
 
     }
-
+    public enum MatchupResult : byte
+    {
+        Win = 0,
+        Loss = 1,
+        Tie = 2,
+        Count = 3
+    }
     class PEval
     {
 
-        //52 bit number each representing a card on the deck
-        //From left to right 2-A  and Clubs, Hearts, Spades, Diamonds
+        // 52-bit number where each bit represents one card in the deck.
+        // From right to left: 2-A by Clubs, Hearts, Spades, Diamonds.
         //private ulong _cardSet;
 
         // This is the main procedure that identifies a player's hand
@@ -36,30 +42,30 @@ namespace PokerCalculator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GeneralProcessCardSet(ulong cardSet)
         {
-            // uses bit 29,28 and 27 to store the hand strength
-            // uses 26 bits to tiebreaker. How?
-            // Straights - last 13 bits - all bits from the highest card are set to 1
-            // Ace High or flush - last 13 bits - 5 highest cards are set  to 1
+            // Uses bits 29, 28, and 27 to store the hand strength.
+            // Uses 26 bits as a tie breaker:
+            // Straights - last 13 bits - all bits from the highest card are set to 1.
+            // Ace-high or flush - last 13 bits - the five highest cards are set to 1.
             // Four, Full, Trips, Two Pair
-            //     bits 26-14 - the highest value game bits are set to 1 
-            //     last 13 bits - the bits of tiebreaker cards are set to 1
+            //     bits 26-14 - the highest value game bits are set to 1.
+            //     last 13 bits - the tie-breaker card bits are set to 1.
 
             int C, H, S, D;
             int CHSD_OR;
             int cc, flushcc;
             int st, fl, stfl;
 
-            //separates the set of cards into their suit
+            // Split the card set by suit.
             C = (int)((cardSet) & 0b1111111111111);
             H = (int)((cardSet >> 13) & 0b1111111111111);
             S = (int)((cardSet >> 26) & 0b1111111111111);
             D = (int)((cardSet >> 39) & 0b1111111111111);
 
-            //identifies the quantity of different numbers
+            // Count the number of different ranks.
             CHSD_OR = C | H | S | D;
             cc = bitCount(CHSD_OR);
 
-            // Test straight, flush, trips, two pairs, pair or High Card
+            // Test straight, flush, trips, two pair, pair, or high card.
             if (cc >= 5)
             {
                 st = straight(CHSD_OR);
@@ -70,7 +76,7 @@ namespace PokerCalculator
                     stfl = straight(fl);
                     if (stfl > 0)
                     {
-                        // second term treats royal flush
+                        // The second term distinguishes royal flushes.
                         return CONSTANTS.STRAIGHTFLUSH | ((stfl & 0x1000) << 14) | stfl;
                     }
                 }
@@ -90,14 +96,14 @@ namespace PokerCalculator
                     return CONSTANTS.PAIR | pair << 13 | cleanLSB2(pair ^ CHSD_OR);
                 }
 
-                //  High Card
+                // High card.
                 if (cc == 7)
                 {
-                    //cleant two LSB
+                    // Clean two least significant bits.
                     return CONSTANTS.HIGH_CARD | cleanLSB2(CHSD_OR);
                 }
 
-                //Trips or 2 pais
+                // Trips or two pair.
                 if (cc == 5)
                 {
                     //C & H & S | C & H & D | C & S & D | H & S & D;
@@ -109,7 +115,7 @@ namespace PokerCalculator
 
             }
 
-            //cc < 5
+            // cc < 5
 
             // Four or full "clean" or "3" pairs
             if (cc == 4)
@@ -127,7 +133,7 @@ namespace PokerCalculator
 
             }
 
-            //four + "pair" or full + "2 trips" or full + two pair
+            // Four plus a pair, full house with two trips, or full house with two pair.
             if (cc == 3)
             {
                 int four = C & H & S & D;
@@ -156,7 +162,7 @@ namespace PokerCalculator
         }
 
 
-        //adapted from pokerstove gitlab project
+        // Adapted from the PokerStove GitLab project.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int bitCount(int subset)
         {
@@ -171,7 +177,7 @@ namespace PokerCalculator
 
         public static int bitCount(ulong set)
         {
-            // subset - 52 bits from right to left 2 - A cointaining all suits
+            // Subset - 52 bits from right to left 2-A containing all suits.
             int c;
             for (c = 0; set > 0; c++)
             {
@@ -180,7 +186,7 @@ namespace PokerCalculator
             return c;
         }
 
-        // Cleans lower significant bit
+        // Clear the least significant set bit.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset)
         {
@@ -195,7 +201,7 @@ namespace PokerCalculator
             return subset & (subset - 1);
         }
 
-        // Cleans 2 Lower significant bits
+        // Clear the two least significant set bits.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB2(int subset)
         {
@@ -204,7 +210,7 @@ namespace PokerCalculator
             return c & (c - 1);
         }
 
-        // Cleans lower significant bit
+        // Clear the least significant set bit.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset, int times)
         {
@@ -218,7 +224,7 @@ namespace PokerCalculator
             return c;
         }
 
-        //Return the last bit set with 1
+        // Return the last bit set to 1.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int lastbit(int subset)
         {
@@ -229,7 +235,7 @@ namespace PokerCalculator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int straight(int subset)
         {
-            //replicate A at the end to find lower sequences
+            // Replicate the ace at the end to find lower sequences.
             subset = ((subset & 0b1000000000000) >> 12) | (subset << 1);
 
             //subset &= subset << 1;
@@ -241,7 +247,7 @@ namespace PokerCalculator
 
             if (subset == 0) return 0;
 
-            // now set all bits after the Most Significant 
+            // Set all bits after the most significant bit.
             subset |= subset >> 1;
             subset |= subset >> 2;
             subset |= subset >> 4;
@@ -250,9 +256,9 @@ namespace PokerCalculator
             return subset;
         }
 
-        // checks for a flush 
-        // in  : each variable contains all the cards of a given suit. Those owned by the player are set to one
-        // out : the number of cards of a suit held by a player - only used if greater or equal to 5  
+        // Check for a flush.
+        // in: each variable contains all cards of a given suit. Cards owned by the player are set to one.
+        // out: the number of cards of a suit held by the player. Only used when greater than or equal to 5.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int flush(int C, int H, int S, int D, out int bitcc)
         {
@@ -263,7 +269,7 @@ namespace PokerCalculator
             return 0;
         }
 
-        // works better than the previous when testing all hands.
+        // Works better than the previous method when testing all hands.
         public static int flush2(int C, int H, int S, int D, out int bitcc)
         {
             bitcc = bitCount(C);
@@ -288,8 +294,8 @@ namespace PokerCalculator
         }
 
 
-        // cards in array from 1 to 52 A to K
-        // Card set must be from 2 to A
+        // Cards in the array are from 1 to 52, A to K.
+        // The card set must be ordered from 2 to A.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ConvertArrayToCardSet(ref int[] c)
         {

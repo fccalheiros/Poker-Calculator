@@ -59,31 +59,20 @@ namespace PokerCalculator
         // The method that will be called when the thread is started.
         public void Simulate()
         {
-            ulong villainhand;
-            ulong board;
-            int heroResult;
-            int villainResult;
-
             Thread.Sleep(1);
             Random R = new Random(DateTime.Now.Millisecond);
+            ulong[] results = new ulong[(int)MatchupResult.Count];
+            Array.Clear(results, 0, results.Length);
 
             win = 0; tie = 0; lost = 0;
 
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
-
-                HoldemEval.RandomHand(herohand, currentBoard, boardCardsLeft, out board, out villainhand, R);
-                heroResult = HoldemEval.ProcessCardSet(herohand,board);
-                villainResult = HoldemEval.ProcessCardSet(villainhand, board);
-
-                if (heroResult > villainResult)
-                    win++;
-                else if (heroResult < villainResult)
-                    lost++;
-                else
-                    tie++;
-
+                results[(int)HoldemEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R)]++;
             }
+            win = results[(int)MatchupResult.Win];
+            lost = results[(int)MatchupResult.Loss];
+            tie = results[(int)MatchupResult.Tie];
             tieEquity = (float)tie / 2;
 
             if (cb != null) cb(win, lost, tie, tieEquity);

@@ -1,27 +1,20 @@
 ﻿using PokerCalculator;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace PokerCalculator
 {
-     class HoldemEval : PEval
+    class HoldemEval : PEval
     {
 
-        //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
-        public static int ProcessCardSet(ulong cardSet) {
+        // Evaluate a complete card set.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ProcessCardSet(ulong cardSet)
+        {
             return PEval.GeneralProcessCardSet(cardSet);
         }
 
-        //Given hero and partial (or not) board cards, draw villain hand and the rest of the board
+        // Evaluate pocket cards with the current board.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ProcessCardSet(ulong pocketpair, ulong board)
         {
@@ -53,7 +46,7 @@ namespace PokerCalculator
             }
             boardCards = allCards ^ heroCards;
 
-            //villain first card
+            // Villain first card.
             next = R.Next(0, CONSTANTS.CARDS_TOTAL);
             n = CONSTANTS.ONE << next;
             while ((allCards & n) > 0)
@@ -63,7 +56,7 @@ namespace PokerCalculator
             }
             allCards |= n;
 
-            //villain second card
+            // Villain second card.
             next = R.Next(0, CONSTANTS.CARDS_TOTAL);
             n = CONSTANTS.ONE << next;
             while ((allCards & n) > 0)
@@ -77,8 +70,7 @@ namespace PokerCalculator
 
         }
 
-        //Given hero and partial (or not) board cards and a villain guess hand, draw villain hand and the rest of the board
-
+        // Draw one villain hand from a range, then draw the rest of the board.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, out ulong boardCards, out ulong villainCards, Random R)
         {
@@ -88,7 +80,7 @@ namespace PokerCalculator
 
             allCards = heroCards | currentBoard;
 
-            //Vilain pocket cards
+            // Villain pocket cards.
             villainCards = range[R.Next(0, rangesize)];
             while ((allCards & villainCards) > 0)
             {
@@ -97,7 +89,7 @@ namespace PokerCalculator
 
             allCards |= villainCards;
 
-            //board
+            // Board cards.
             while (j < boardCardsLeft)
             {
                 n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
@@ -113,7 +105,7 @@ namespace PokerCalculator
 
         }
 
-        //Do the same as the previous for more than one villain
+        // Draw one hand per villain from each range, then draw the rest of the board.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, out ulong boardCards, out ulong[] villainCards, Random R)
         {
@@ -126,14 +118,14 @@ namespace PokerCalculator
             int v;
             bool TryAgain = true;
 
-            //Vilains pocket pair
+            // Villain pocket pairs.
             while (TryAgain)
             {
                 TryAgain = false;
                 v = 0;
                 allCards = heroCards | currentBoard;
                 // If a duplicate card is drawn, the process must start over to avoid errors in the probability calculations.
-                // this may lead to infinite loops with large number of players with small and equal card range
+                // This may lead to infinite loops with many players and small, overlapping ranges.
                 while (!TryAgain && v < nVillains)
                 {
                     villainCards[v] = range[v, R.Next(0, rangesize[v])];
@@ -145,7 +137,7 @@ namespace PokerCalculator
             }
 
             boardCards = currentBoard;
-            //board
+            // Board cards.
             while (j < boardCardsLeft)
             {
                 n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
@@ -160,36 +152,54 @@ namespace PokerCalculator
 
         }
 
-        // board must have 0, 3 or 4 cards
+        public static MatchupResult SimulateMatchup(ulong heroHand, ulong currentBoard, int boardCardsLeft, Random random)
+        {
+            ulong board;
+            ulong villainHand;
+
+            RandomHand(heroHand, currentBoard, boardCardsLeft, out board, out villainHand, random);
+            int heroResult = ProcessCardSet(heroHand, board);
+            int villainResult = ProcessCardSet(villainHand, board);
+
+            if (heroResult > villainResult)
+                return MatchupResult.Win;
+
+            if (heroResult < villainResult)
+                return MatchupResult.Loss;
+
+            return MatchupResult.Tie;
+        }
+
+        // The board must have 0, 3, or 4 cards.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Enumerate(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
             win = 0; loss = 0; tie = 0;
 
-            int i,j;
+            int i, j;
             int boardCount = bitCount(boardCards);
             int cardsLeft = 5 - bitCount(boardCards);
             int[] iterators = new int[6];
             ulong enumeratedCards;
-            ulong allInitialCards = heroCards | villainCards| boardCards;
+            ulong allInitialCards = heroCards | villainCards | boardCards;
 
 
             for (i = 1; i < 6; i++) { iterators[i] = 53; }
             i = 0;
             iterators[0] = 0;
 
-            while (  ! ((i == 0) && (iterators[0]+1 == iterators[1])) )
+            while (!((i == 0) && (iterators[0] + 1 == iterators[1])))
             {
                 iterators[i]++;
-                for (j = i + 1; j < cardsLeft; j++) { iterators[j] = iterators[j-1] + 1; }
+                for (j = i + 1; j < cardsLeft; j++) { iterators[j] = iterators[j - 1] + 1; }
                 i = cardsLeft - 1;
 
                 enumeratedCards = 0;
-                // construct the hole board
-                for ( j = 0; j < cardsLeft; j++) { 
-                    enumeratedCards |= (CONSTANTS.ONE << iterators[j]-1);
+                // Build the missing board cards.
+                for (j = 0; j < cardsLeft; j++) {
+                    enumeratedCards |= CONSTANTS.ONE << (iterators[j] - 1);
                 }
-                // otherwise there are repeated cards
+                // Skip combinations with repeated cards.
                 if ((enumeratedCards & allInitialCards) == 0)
                 {
                     int heroResult = ProcessCardSet(heroCards, enumeratedCards | boardCards);
@@ -199,7 +209,7 @@ namespace PokerCalculator
                     else tie++;
                 }
 
-                while( (i>0) & (iterators[i]+1 == iterators[i+1]))  
+                while ((i > 0) & (iterators[i] + 1 == iterators[i + 1]))
                     i = i - 1;
                 
             }
@@ -207,7 +217,7 @@ namespace PokerCalculator
 
         }
 
-        // this is god, but slower
+        // This is good, but slower.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Enumerate5Cards(ulong heroCards, ulong villainCards, out int win, out int loss, out int tie)
         {
@@ -327,7 +337,7 @@ namespace PokerCalculator
             }
         }
 
-        //this option is faster
+        // This option is faster.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EnumerateFast(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
@@ -335,7 +345,7 @@ namespace PokerCalculator
             int boardCount = bitCount(boardCards);
             if (boardCount == 0) Enumerate5Cards(heroCards, villainCards, out win, out loss, out tie);
             else if (boardCount == 3) Enumerate2Cards(heroCards, villainCards, boardCards, out win, out loss, out tie);
-            else if (boardCount == 4) EnumerateOneCard(heroCards, villainCards,boardCards, out win, out loss, out tie);
+            else if (boardCount == 4) EnumerateOneCard(heroCards, villainCards, boardCards, out win, out loss, out tie);
         }
     }
 

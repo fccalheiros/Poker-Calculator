@@ -125,7 +125,7 @@ namespace PokerCalculator
             return s;
         }
 
-        //------------- Testes de possibilidades --------------------------------
+        //------------- Possibility tests --------------------------------
         public void SetCards(ref int[] cartas, int ini, int fim, int index)
         {
 
@@ -171,7 +171,7 @@ namespace PokerCalculator
             {
                 if (((_sequenceNumber & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                 {
-                    _sequenceNumber = 8; // clean the ACE in the sequence so that the most significant digit is the max card in straight
+                    _sequenceNumber = 8; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                     _sequenceFound = true;
                     //_handPower = 1;
                 }
@@ -204,7 +204,7 @@ namespace PokerCalculator
 
                     if (((seqflushInt & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                     {
-                        _sequenceNumber = 15; // clean the ACE in the sequence so that the most significant digit is the max card in strainght
+                        _sequenceNumber = 15; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                         _handPower = 8;
                         return;
                     }
@@ -246,7 +246,7 @@ namespace PokerCalculator
                     return;
                 }
 
-            //if the function is not returned yet the index must be translated to hand strength
+            // If the function has not returned yet, the index must be translated to hand strength.
             _handPower = MAP7CARDS[_handPower];
 
         }
@@ -364,7 +364,7 @@ namespace PokerCalculator
             {
                 if (((_sequenceNumber & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                 {
-                    _sequenceNumber = 8; // clean the ACE in the sequence so that the most significant digit is the max card in straight
+                    _sequenceNumber = 8; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                     _sequenceFound = true;
                     //_handPower = 1;
                 }
@@ -427,7 +427,7 @@ namespace PokerCalculator
 
                     if (((seqflushIntSave & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                     {
-                        _sequenceNumber = 15; // clean the ACE in the sequence so that the most significant digit is the max card in strainght
+                        _sequenceNumber = 15; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                         _handPower = 8;
                         return _handPower;
                     }
@@ -442,7 +442,7 @@ namespace PokerCalculator
                     return _handPower;
                 }
 
-            //if the function is not returned yet the index must be translated to hand strength
+            // If the function has not returned yet, the index must be translated to hand strength.
             _handPower = MAP7CARDS[_handPower];
 
             return _handPower;
@@ -455,7 +455,7 @@ namespace PokerCalculator
             hand1 = (_handNumber & DISAMB_ARRAY[_handPower]) >> DISAMB_SHIFT[_handPower];
             ulong clean = (hand1 % 15) - DISAMB_CARDS_GAME[_handPower];
 
-            //clean up other suit cards
+            // Clean up cards from other suits.
             if (FlushNumber > 0)
             {
                 hand2 = 0;
@@ -471,7 +471,7 @@ namespace PokerCalculator
 
                 if (clean == 0) return;
             }
-            // clean lower games 
+            // Clean lower-ranked hands.
             i = 0;
             while (clean > 0)
             {
@@ -487,13 +487,13 @@ namespace PokerCalculator
                 return;
             }
 
-            //Tratamento especial para full house
+            // Special handling for full houses.
             if (_handPower != (int)PokerHands.FullHouse)
                 hand2 = (hand1 ^ MAX_NUM) & _handNumber & HIGH_CARD_DISAMB;
             else
                 hand2 = (((hand1 << 1) ^ MAX_NUM) & (_handNumber & PAIR_DISAMB)) >> 1;
 
-            //clean up unused cards
+            // Clean up unused cards.
             i = 0;
             clean = (hand2 % 15) - DISAMB_CARDS_LEFT[_handPower];
             while (clean > 0)
@@ -576,7 +576,7 @@ namespace PokerCalculator
 
             sort = UM << c[0] | UM << c[1];
 
-            //Vilain pocket pair
+            // Villain pocket pair.
             next = R.Next(0, RangeSize);
             n = UM << Range[next, 0] | UM << Range[next, 1];
             while ((sort & n) > 0)
@@ -667,7 +667,7 @@ namespace PokerCalculator
             return 0;
         }
 
-        // novo
+        // New version.
         public void RankPokerFIVECardsHand(int[] cartas, out ulong hand, out ulong hand1, out int index)
         {
             //(cardNumber - 1) % 13
@@ -740,7 +740,7 @@ namespace PokerCalculator
             hand1 = besthand1;
             index = bestindex;
         }
-        // novo
+        // New version.
 
         public void RankPokerHandFIVECards(ref int[] num, ref int[] suit, out ulong hand, out int seq, out int flush, out int index)
         {
@@ -766,17 +766,17 @@ namespace PokerCalculator
             index = (int)(hand % 15);
             index -= (seq / (seq & -seq) == 31) | (seq == SEQ_PATTERN) ? 3 : 1;
             index -= (flush > 0 ? 1 : 0) * (seq == MAX_SEQ_PATTERN ? -5 : 1);
-            // Avaliar tirar a desambiguação do ROYAL FLUSH daqui e tratar como um sequencia com carta alta A
+            // Consider removing ROYAL FLUSH disambiguation from here and treating it as an ace-high sequence.
 
 
-            // zerar o bit 48 para poder comparar sequencias A2345  com as demais
+            // Clear bit 48 to compare A2345 sequences with the other sequences.
             if (seq == SEQ_PATTERN) hand ^= SEQ_DISAMB;
             index = MAP[index];
 
         }
 
-        //Tentativa de fazer 7 cartas como permutação de 5 cartas.... ficou muito lento.
-        // Não funciona mais pois mudei o procedimento de desambiguação para poder comparar mãos diferentes.
+        // Attempt to process 7 cards as 5-card permutations. This became too slow.
+        // This no longer works because the disambiguation procedure changed to compare different hands.
         /* public void RankPokerHand(int[] cartas, out ulong hand, out int seq, out int flush, out int index)
          {
              //(cardNumber - 1) % 13
@@ -899,7 +899,7 @@ namespace PokerCalculator
             {
                 if (((_sequenceNumber & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                 {
-                    _sequenceNumber = 8; // clean the ACE in the sequence so that the most significant digit is the max card in straight
+                    _sequenceNumber = 8; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                     _sequenceFound = true;
                     //_handPower = 1;
                 }
@@ -932,7 +932,7 @@ namespace PokerCalculator
 
                     if (((seqflushInt & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                     {
-                        _sequenceNumber = 15; // clean the ACE in the sequence so that the most significant digit is the max card in strainght
+                        _sequenceNumber = 15; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                         _handPower = 8;
                         return;
                     }
@@ -974,7 +974,7 @@ namespace PokerCalculator
                     return;
                 }
 
-            //if the function is not returned yet the index must be translated to hand strength
+            // If the function has not returned yet, the index must be translated to hand strength.
             _handPower = MAP7CARDS[_handPower];
 
         }
@@ -1017,7 +1017,7 @@ namespace PokerCalculator
             {
                 if (((_sequenceNumber & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                 {
-                    _sequenceNumber = 15; // clean the ACE in the sequence so that the most significant digit is the max card in strainght
+                    _sequenceNumber = 15; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                     _sequenceFound = true;
                     //_handPower = 1;
                 }
@@ -1058,7 +1058,7 @@ namespace PokerCalculator
 
                     if (((seqflushInt & SEQ_PATTERN) ^ SEQ_PATTERN) == 0)
                     {
-                        _sequenceNumber = 15; // clean the ACE in the sequence so that the most significant digit is the max card in strainght
+                        _sequenceNumber = 15; // Clear the ace in the sequence so the most significant digit is the max card in the straight.
                         _handPower = 8;
                         return;
                     }
@@ -1074,12 +1074,12 @@ namespace PokerCalculator
                     return;
                 }
 
-            //if the function is not returned yet the index must be translated to hand strength
+            // If the function has not returned yet, the index must be translated to hand strength.
             _handPower = MAP7CARDS[_handPower];
 
         }
 
-        //Must not be called if index are equal
+        // Must not be called if indexes are equal.
         public int HandCompare7Cards(ulong h1, int i1, ulong h2, int i2)
         {
 
@@ -1106,7 +1106,7 @@ namespace PokerCalculator
             hand1 = hand & DISAMB_ARRAY[index];
             hand1 >>= DISAMB_SHIFT[index];
 
-            // clean lower games 
+            // Clean lower-ranked hands.
             int i = 0;
             while (hand1 % 15 > DISAMB_CARDS_GAME[index])
             {
@@ -1115,13 +1115,13 @@ namespace PokerCalculator
             }
             hand1 <<= i;
 
-            //Tratamento especial para full house
+            // Special handling for full houses.
             if (index != 8)
                 hand2 = (hand1 ^ MAX_NUM) & hand & HIGH_CARD_DISAMB;
             else
                 hand2 = (hand1 ^ MAX_NUM) & hand & PAIR_DISAMB >> 1;
 
-            //clean up unused cards
+            // Clean up unused cards.
             i = 0;
             while (hand2 % 15 > DISAMB_CARDS_LEFT[index])
             {
@@ -1132,7 +1132,7 @@ namespace PokerCalculator
 
         }
 
-        // Não funciona pois mudei a desambiguação de mão.... tem que rever
+        // This no longer works because hand disambiguation changed. Review before using.
         public void RankPokerFIVECardsHand(ref int[] num, ref int[] suit, out ulong hand, out ulong hand1, out int index)
         {
 
@@ -1157,10 +1157,10 @@ namespace PokerCalculator
             index = (int)(hand % 15);
             index -= (seq / (seq & -seq) == 31) | (seq == SEQ_PATTERN) ? 3 : 1;
             index -= (flush > 0 ? 1 : 0) * (seq == MAX_SEQ_PATTERN ? -5 : 1);
-            // Avaliar tirar a desambiguação do ROYAL FLUSH daqui e tratar como um sequencia com carta alta A
+            // Consider removing ROYAL FLUSH disambiguation from here and treating it as an ace-high sequence.
 
 
-            // zerar o bit 48 para poder comparar sequencias A2345  com as demais
+            // Clear bit 48 to compare A2345 sequences with the other sequences.
             if (seq == SEQ_PATTERN) hand ^= SEQ_DISAMB;
             index = MAP[index];
 
@@ -1195,7 +1195,7 @@ namespace PokerCalculator
             }
 
             flush &= FLUSHMASK;
-            flush >>= 3;   //ajusta para o suit do flush
+            flush >>= 3; // Adjust to the flush suit.
 
             int seqAux = MAX_SEQ_PATTERN;
             for (int i = 0; i < 9; i++)
@@ -1266,7 +1266,7 @@ namespace PokerCalculator
                 }
             }
 
-            // zerar o bit 48 para poder comparar sequencias A2345  com as demais 
+            // Clear bit 48 to compare A2345 sequences with the other sequences.
             //if (seq == SEQ_PATTERN) hand ^= SEQ_DISAMB;
             if (index == 7)
                 if ((hand & FOUR_DISAMB) > 1)

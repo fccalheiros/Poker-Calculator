@@ -463,7 +463,7 @@ namespace PokerCalculator
             if (s.Length > 10 || !valid)
             {
                 s = LastValidBoardCardsSTR.Replace(" ", "");
-                tb.Text = LastValidHeroHandSTR;
+                tb.Text = LastValidBoardCardsSTR;
             }
 
 
@@ -595,7 +595,7 @@ namespace PokerCalculator
         {
             switch (c)
             {
-                case 0: return 1; //Ace
+                case 0: return 1; // Ace.
                 default: return (14 - c);
             }
         }
@@ -684,7 +684,7 @@ namespace PokerCalculator
                             c1N = ToCardNumberNew(j);
                             c2N = ToCardNumberNew(i);
 
-                            if (i > j) //suited          
+                            if (i > j) // Suited.
                             {
                                 for (int k1 = 0; k1 <= 39; k1 += 13)
                                 {
@@ -692,7 +692,7 @@ namespace PokerCalculator
                                     index++;
                                 }
                             }
-                            else if (i < j) //unsuited  - use of modulus to make code cleaner
+                            else if (i < j) // Offsuit. The modulus keeps the code cleaner.
                             {
                                 c1N = ToCardNumberNew(i);
                                 c2N = ToCardNumberNew(j);
@@ -705,7 +705,7 @@ namespace PokerCalculator
                                     }
                                 }
                             }
-                            else  //pair
+                            else // Pair.
                             {
                                 for (int k1 = 0; k1 <= 39; k1 += 13)
                                 {
@@ -747,7 +747,7 @@ namespace PokerCalculator
                         c1N = ToCardNumberNew(j);
                         c2N = ToCardNumberNew(i);
 
-                        if (i > j) //suited          
+                        if (i > j) // Suited.
                         {
                             for (int k1 = 0; k1 <= 39; k1 += 13)
                             {
@@ -757,7 +757,7 @@ namespace PokerCalculator
                                 index++;
                             }
                         }
-                        else if (i < j) //unsuited  - use of modulus to make code cleaner
+                        else if (i < j) // Offsuit. The modulus keeps the code cleaner.
                         {
                             c1 = ToCardNumber(i);
                             c2 = ToCardNumber(j);
@@ -774,7 +774,7 @@ namespace PokerCalculator
                                 }
                             }
                         }
-                        else  //pair
+                        else // Pair.
                         {
                             for (int k1 = 0; k1 <= 39; k1 += 13)
                             {
@@ -799,9 +799,6 @@ namespace PokerCalculator
         {
             win = 0; tie = 0; loss = 0; tieEquity = 0;
             DateTime InitialDateTime = DateTime.Now;
-
-            
-
 
             ulong herohand = PEval.ConvertStringToCardSet(HeroHandSTR);
             ulong currentBoard = PEval.ConvertStringToCardSet(BoardCardsSTR);

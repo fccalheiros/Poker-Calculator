@@ -70,7 +70,7 @@ public struct CARD
 
     public static char ReturnSuitChar(int n)
     {
-        //'hearts'(copas), 'diamonds'(ouros), 'clubs'(paus) e 'spades'
+        // Hearts, diamonds, clubs, and spades.
 
         if (n == 0) return 'c';
         if (n == 1) return 'h';
@@ -81,7 +81,7 @@ public struct CARD
 
     public static byte ReturnSuitByte(char s)
     {
-        //'hearts'(copas), 'diamonds'(ouros), 'clubs'(paus) e 'spades'
+        // Hearts, diamonds, clubs, and spades.
         byte v = 0;
         switch (s)
         {
@@ -160,8 +160,8 @@ public enum PokerHands : int
 public class HoldemPokerHand
 {
 
-    //Cards are numbers from 1 .. 52 --- A até K e Clubs - Hearts - Spades - Diamonds
-    // suit 0 - Clubs - 1 Hearts - 2 Spades - 3 Diamonds
+    // Cards are numbers from 1 to 52: A to K, Clubs, Hearts, Spades, Diamonds.
+    // Suit 0 - Clubs, 1 - Hearts, 2 - Spades, 3 - Diamonds.
 
     const int TotalCards = 52;
     const int NumCards = 14;
@@ -297,7 +297,7 @@ public class HoldemPokerHand
             c1[i] = new CARD(0);
         }
 
-        // c will bring the 5 cards used for the player´s hand which will enable the tiebreker
+        // c contains the five cards used for the player's hand and enables tie-breaking.
         ha = ReturnPokerHand(ref c);
         hb = b.ReturnPokerHand(ref c1);
 
@@ -441,7 +441,7 @@ public class HoldemPokerHand
                 if (hand[i] != 4 & hand[i] != 0)
                 {
                     c[1].SET(Convert.ToByte(i + 1));
-                    //avaliar se precisa limpar isso
+                    // Review whether these cards need to be cleared.
                     //for (int j = 2; j < BoardSize; j++) c[j].SET(0);
                     return true;
                 }
@@ -473,7 +473,7 @@ public class HoldemPokerHand
             if (i != carta & (hand[i] == 3 | hand[i] == 2))
             {
                 c[1].SET(Convert.ToByte(i + 1));
-                //avaliar se precisa limpar isso
+                // Review whether these cards need to be cleared.
                 //for (int j = 2; j < BoardSize; j++) c[j].SET(0);
                 return true;
             }
@@ -556,7 +556,7 @@ public class HoldemPokerHand
                 else
                 {
                     c[1].SET(Convert.ToByte(i + 1));
-                    //  avaliar for (int j = 2; j < BoardSize; j++) c[j].SET(0);
+                    // Review whether this is needed: for (int j = 2; j < BoardSize; j++) c[j].SET(0);
                     break;
                 }
             }
@@ -754,7 +754,7 @@ public class HoldemPokerHand
         this.ResetHand();
 
         pocketCards[0] = new CARD(Convert.ToByte(pocketCard1));
-        pocketCards[1] = new CARD(Convert.ToByte(pocketCard1));
+        pocketCards[1] = new CARD(Convert.ToByte(pocketCard2));
     }
 
     public void ResetHand()
