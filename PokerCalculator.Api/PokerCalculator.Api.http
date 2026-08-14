@@ -1,0 +1,12 @@
+@PokerCalculator.Api_HostAddress = http://localhost:5113
+
+POST {{PokerCalculator.Api_HostAddress}}/api/equity
+Content-Type: application/json
+
+{
+  "hero": "AhKs",
+  "board": "",
+  "villainRanges": [["TT", "AKo", "76s"]]
+}
+
+###

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Omaha hand evaluation: unlike Hold'em, the best hand must use exactly two pocket
+// cards and three board cards, so every such combination has to be tried.
+using System;
 
 namespace PokerCalculator
 {

@@ -1,38 +1,67 @@
-﻿using System;
+﻿// Runs a batch of Monte Carlo simulations (heads-up, range vs. hand, or range vs. range)
+// on its own thread and reports win/loss/tie counts through a callback when done.
+using System;
 using System.Threading;
 
 namespace PokerCalculator
 {
-    public delegate void simulCallBack(ulong w, ulong l, ulong t, float tieEquity);
+    public delegate void simulCallBack(SimulationResult result);
 
     public class PokerMonteCarloServer
     {
-        private readonly ulong herohand;
-        private readonly ulong currentBoard;
-        private readonly int boardCardsLeft;
-        private readonly ulong numberOfSimulations;
+        private ulong herohand;
+        private ulong currentBoard;
+        private int boardCardsLeft;
+        private ulong numberOfSimulations;
 
         private ulong win, tie, lost;
         private float tieEquity;
 
-        private readonly ulong[] range;
-        private readonly int rangeSize;
-        private readonly int nVillains;
-        private readonly ulong[,] rangeN;
-        private readonly int[] rangeSizeN;
+        private ulong[] range;
+        private int rangeSize;
+        private int nVillains;
+        private ulong[,] rangeN;
+        private int[] rangeSizeN;
 
-        private readonly simulCallBack cb;
+        private simulCallBack cb;
+        private CancellationToken cancellationToken;
+
+        // A server with nothing configured yet; useful when a worker thread owns one
+        // long-lived instance and reconfigures it via Configure(...) for each job.
+        public PokerMonteCarloServer()
+        {
+        }
 
         public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb)
+        {
+            Configure(h, n, currboard, bcl, callb);
+        }
+
+        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb)
+        {
+            Configure(h, n, currboard, bcl, r, rS, callb);
+        }
+
+        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb)
+        {
+            Configure(h, n, currboard, bcl, r, rS, nV, callb);
+        }
+
+        // Reconfigures this instance for a heads-up simulation against a uniformly random villain hand.
+        // The cancellation token is checked periodically during the run so an abandoned request
+        // (e.g. the caller disconnected) stops early instead of grinding through every simulation.
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb, CancellationToken token = default)
         {
             herohand = h;
             numberOfSimulations = n;
             currentBoard = currboard;
             boardCardsLeft = bcl;
             cb = callb;
+            cancellationToken = token;
         }
 
-        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb)
+        // Reconfigures this instance for a simulation against a single villain range.
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb, CancellationToken token = default)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -41,9 +70,11 @@ namespace PokerCalculator
             range = r;
             rangeSize = rS;
             cb = callb;
+            cancellationToken = token;
         }
 
-        public PokerMonteCarloServer(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb)
+        // Reconfigures this instance for a simulation against multiple villain ranges.
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb, CancellationToken token = default)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -53,7 +84,13 @@ namespace PokerCalculator
             rangeSizeN = rS;
             nVillains = nV;
             cb = callb;
+            cancellationToken = token;
         }
+
+        // How often (in iterations) the simulation loops poll the cancellation token.
+        // Checking every iteration would add measurable overhead to a hot loop; this keeps
+        // the check cheap while still reacting within a few thousand simulations.
+        private const ulong CancellationCheckInterval = 4096;
 
 
         // The method that will be called when the thread is started.
@@ -68,6 +105,8 @@ namespace PokerCalculator
 
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
+                if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
+
                 results[(int)HoldemEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R)]++;
             }
             win = results[(int)MatchupResult.Win];
@@ -75,7 +114,7 @@ namespace PokerCalculator
             tie = results[(int)MatchupResult.Tie];
             tieEquity = (float)tie / 2;
 
-            if (cb != null) cb(win, lost, tie, tieEquity);
+            cb?.Invoke(new SimulationResult(win, lost, tie, tieEquity));
 
         }
 
@@ -94,6 +133,7 @@ namespace PokerCalculator
 
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
+                if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
                 HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
 
@@ -111,7 +151,7 @@ namespace PokerCalculator
 
             tieEquity = (float)tie / 2;
 
-            if (cb != null) cb(win, lost, tie, tieEquity);
+            cb?.Invoke(new SimulationResult(win, lost, tie, tieEquity));
 
         }
 
@@ -134,6 +174,7 @@ namespace PokerCalculator
 
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
+                if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
                 HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
 
@@ -167,7 +208,7 @@ namespace PokerCalculator
                 }
             }
 
-            if (cb != null) cb(win, lost, tie, tieEquity);
+            cb?.Invoke(new SimulationResult(win, lost, tie, tieEquity));
 
         }
 

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Legacy card/hand representation (CARD struct, PokerHands enum, HoldemPokerHand).
+// Kept for reference/testing; the fast evaluator path uses PEval/HoldemEval/OmahaEval instead.
+using System;
 
 
 // This is part of the first implementation that does not have good performance

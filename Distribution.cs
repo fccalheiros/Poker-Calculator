@@ -855,14 +855,14 @@ namespace PokerCalculator
             TBOutput.Text = s;
         }
 
-        public void ResultCallback(ulong _win, ulong _loss, ulong _tie, float _tieEquity)
+        public void ResultCallback(SimulationResult result)
         {
             // When there is more than one opponent, multiple ties may occur. Therefore, tie equity should be considered as an outcome of the process.
             mut.WaitOne();
-            win += _win;
-            loss += _loss;
-            tie += _tie;
-            tieEquity += _tieEquity;
+            win += result.Win;
+            loss += result.Loss;
+            tie += result.Tie;
+            tieEquity += result.TieEquity;
             mut.ReleaseMutex();
         }
 

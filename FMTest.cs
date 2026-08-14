@@ -1240,14 +1240,14 @@ namespace PokerCalculator
 
         }
 
-        public void ResultCallback(ulong _w, ulong _l, ulong _t, float _et)
+        public void ResultCallback(SimulationResult result)
         {
             lock (_lockResultado)
             {
-                w += _w;
-                l += _l;
-                t += _t;
-                et += _et;
+                w += result.Win;
+                l += result.Loss;
+                t += result.Tie;
+                et += result.TieEquity;
             }
          }
 

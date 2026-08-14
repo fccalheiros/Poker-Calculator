@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Core bitmask card-set representation and the fast hand evaluator (GeneralProcessCardSet)
+// that HoldemEval and OmahaEval build on, plus card/string conversion helpers.
+using System;
 using System.Runtime.CompilerServices;
 
 namespace PokerCalculator

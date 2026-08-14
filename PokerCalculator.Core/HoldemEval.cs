@@ -1,4 +1,6 @@
-﻿using PokerCalculator;
+﻿// Texas Hold'em specific hand evaluation and Monte Carlo sampling: drawing random
+// hands/boards (with or without a villain range) and enumerating exact outcomes.
+using PokerCalculator;
 using System;
 using System.Runtime.CompilerServices;
 
