@@ -39,7 +39,6 @@ namespace PokerCalculator
 
         // This is the main procedure that identifies a player's hand
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GeneralProcessCardSet(ulong cardSet)
         {
             // Uses bits 29, 28, and 27 to store the hand strength.
@@ -163,7 +162,6 @@ namespace PokerCalculator
 
 
         // Adapted from the PokerStove GitLab project.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int bitCount(int subset)
         {
             // subset - 13 bits from right to left 2 - A
@@ -211,7 +209,6 @@ namespace PokerCalculator
         }
 
         // Clear the least significant set bit.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset, int times)
         {
             // subset - 13 bits from right to left 2 - A
@@ -296,7 +293,6 @@ namespace PokerCalculator
 
         // Cards in the array are from 1 to 52, A to K.
         // The card set must be ordered from 2 to A.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ConvertArrayToCardSet(ref int[] c)
         {
             ulong cardset = 0;
@@ -315,7 +311,6 @@ namespace PokerCalculator
             return cardset;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ConvertArrayToCardSet(ref int[] c, int end)
         {
             ulong cardset = 0;
@@ -384,7 +379,6 @@ namespace PokerCalculator
             return suit;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ulong ConvertStringToCardSet(string s)
         {
             ulong cardset = 0;
@@ -441,7 +435,6 @@ namespace PokerCalculator
             return valid;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ToString(ulong cardset)
         {
             string s = "";
@@ -505,7 +498,6 @@ namespace PokerCalculator
         }
 
         // Count all possible hands in a Texas Holdem game
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int[] EvaluateAllCombinations()
         {
             int[] res = new int[10];

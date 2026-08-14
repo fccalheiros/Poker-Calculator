@@ -22,7 +22,6 @@ namespace PokerCalculator
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHand(ulong heroCards, ulong currentBoard, int boardCardsLeft, out ulong boardCards, out ulong villainCards, Random R)
         {
             int next;
@@ -71,7 +70,6 @@ namespace PokerCalculator
         }
 
         // Draw one villain hand from a range, then draw the rest of the board.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, out ulong boardCards, out ulong villainCards, Random R)
         {
             ulong n;
@@ -106,7 +104,6 @@ namespace PokerCalculator
         }
 
         // Draw one hand per villain from each range, then draw the rest of the board.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, out ulong boardCards, out ulong[] villainCards, Random R)
         {
             ulong n;
@@ -171,7 +168,6 @@ namespace PokerCalculator
         }
 
         // The board must have 0, 3, or 4 cards.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Enumerate(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
             win = 0; loss = 0; tie = 0;
@@ -218,7 +214,6 @@ namespace PokerCalculator
         }
 
         // This is good, but slower.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Enumerate5Cards(ulong heroCards, ulong villainCards, out int win, out int loss, out int tie)
         {
 
@@ -272,7 +267,6 @@ namespace PokerCalculator
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Enumerate2Cards(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
 
@@ -307,7 +301,6 @@ namespace PokerCalculator
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void EnumerateOneCard(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
 
@@ -338,7 +331,6 @@ namespace PokerCalculator
         }
 
         // This option is faster.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EnumerateFast(ulong heroCards, ulong villainCards, ulong boardCards, out int win, out int loss, out int tie)
         {
             win = 0; loss = 0; tie = 0;

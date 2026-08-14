@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 
 namespace PokerCalculator
 {
     class OmahaEval : PEval
     {
         // Evaluate the best Omaha hand using exactly two pocket cards and three board cards.
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ProcessCardSet(ulong pocketcards, ulong boardcards)
         {
             StripCardSet(pocketcards, out ulong[] pocket);
