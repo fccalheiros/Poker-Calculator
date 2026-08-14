@@ -12,4 +12,14 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="PokerCalculator.Core\**" />
+    <EmbeddedResource Remove="PokerCalculator.Core\**" />
+    <None Remove="PokerCalculator.Core\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="PokerCalculator.Core\PokerCalculator.Core.csproj" />
+  </ItemGroup>
+
 </Project>

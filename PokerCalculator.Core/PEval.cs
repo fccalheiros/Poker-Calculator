@@ -30,7 +30,7 @@ namespace PokerCalculator
         Tie = 2,
         Count = 3
     }
-    class PEval
+    public class PEval
     {
 
         // 52-bit number where each bit represents one card in the deck.

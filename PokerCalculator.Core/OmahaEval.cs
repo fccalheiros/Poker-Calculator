@@ -2,7 +2,7 @@
 
 namespace PokerCalculator
 {
-    class OmahaEval : PEval
+    public class OmahaEval : PEval
     {
         // Evaluate the best Omaha hand using exactly two pocket cards and three board cards.
         public static int ProcessCardSet(ulong pocketcards, ulong boardcards)

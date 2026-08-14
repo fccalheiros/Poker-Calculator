@@ -5,7 +5,7 @@ namespace PokerCalculator
 {
     public delegate void simulCallBack(ulong w, ulong l, ulong t, float tieEquity);
 
-    class PokerMonteCarloServer
+    public class PokerMonteCarloServer
     {
         private readonly ulong herohand;
         private readonly ulong currentBoard;

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace PokerCalculator
 {
-    class HoldemEval : PEval
+    public class HoldemEval : PEval
     {
 
         // Evaluate a complete card set.
