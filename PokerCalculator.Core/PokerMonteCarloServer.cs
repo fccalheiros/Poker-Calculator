@@ -1,5 +1,6 @@
 ﻿// Runs a batch of Monte Carlo simulations (heads-up, range vs. hand, or range vs. range)
-// on its own thread and reports win/loss/tie counts through a callback when done.
+// on its own thread and reports win/loss/tie counts through a callback when done. Supports
+// both Hold'em and Omaha via the GameType passed to Configure (defaults to Hold'em).
 using System;
 using System.Threading;
 
@@ -13,6 +14,7 @@ namespace PokerCalculator
         private ulong currentBoard;
         private int boardCardsLeft;
         private ulong numberOfSimulations;
+        private GameType gameType;
 
         private ulong win, tie, lost;
         private float tieEquity;
@@ -50,7 +52,7 @@ namespace PokerCalculator
         // Reconfigures this instance for a heads-up simulation against a uniformly random villain hand.
         // The cancellation token is checked periodically during the run so an abandoned request
         // (e.g. the caller disconnected) stops early instead of grinding through every simulation.
-        public void Configure(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb, CancellationToken token = default)
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -58,10 +60,11 @@ namespace PokerCalculator
             boardCardsLeft = bcl;
             cb = callb;
             cancellationToken = token;
+            gameType = game;
         }
 
         // Reconfigures this instance for a simulation against a single villain range.
-        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb, CancellationToken token = default)
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -71,10 +74,11 @@ namespace PokerCalculator
             rangeSize = rS;
             cb = callb;
             cancellationToken = token;
+            gameType = game;
         }
 
         // Reconfigures this instance for a simulation against multiple villain ranges.
-        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb, CancellationToken token = default)
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -85,6 +89,7 @@ namespace PokerCalculator
             nVillains = nV;
             cb = callb;
             cancellationToken = token;
+            gameType = game;
         }
 
         // How often (in iterations) the simulation loops poll the cancellation token.
@@ -107,7 +112,9 @@ namespace PokerCalculator
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
-                results[(int)HoldemEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R)]++;
+                results[(int)(gameType == GameType.Omaha
+                    ? OmahaEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R)
+                    : HoldemEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R))]++;
             }
             win = results[(int)MatchupResult.Win];
             lost = results[(int)MatchupResult.Loss];
@@ -135,10 +142,18 @@ namespace PokerCalculator
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
-                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
+                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
 
-                heroResult = HoldemEval.ProcessCardSet(herohand, board);
-                villainResult = HoldemEval.ProcessCardSet(villainhand, board);
+                if (gameType == GameType.Omaha)
+                {
+                    heroResult = OmahaEval.ProcessCardSet(herohand, board);
+                    villainResult = OmahaEval.ProcessCardSet(villainhand, board);
+                }
+                else
+                {
+                    heroResult = HoldemEval.ProcessCardSet(herohand, board);
+                    villainResult = HoldemEval.ProcessCardSet(villainhand, board);
+                }
 
                 if (heroResult > villainResult)
                     win++;
@@ -176,14 +191,18 @@ namespace PokerCalculator
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
-                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
+                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
 
-                heroResult = HoldemEval.ProcessCardSet(herohand, board);
+                heroResult = gameType == GameType.Omaha
+                    ? OmahaEval.ProcessCardSet(herohand, board)
+                    : HoldemEval.ProcessCardSet(herohand, board);
                 bestvillainResult = 0;
 
                 for (int v = 0; v < nVillains; v++)
                 {
-                    villainResult[v] = HoldemEval.ProcessCardSet(villainhand[v],board);
+                    villainResult[v] = gameType == GameType.Omaha
+                        ? OmahaEval.ProcessCardSet(villainhand[v], board)
+                        : HoldemEval.ProcessCardSet(villainhand[v], board);
                     if (villainResult[v] > bestvillainResult) bestvillainResult = villainResult[v];
                 }
 

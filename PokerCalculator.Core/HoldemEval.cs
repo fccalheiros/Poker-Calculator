@@ -1,5 +1,6 @@
-﻿// Texas Hold'em specific hand evaluation and Monte Carlo sampling: drawing random
-// hands/boards (with or without a villain range) and enumerating exact outcomes.
+﻿// Texas Hold'em specific hand evaluation and Monte Carlo sampling: drawing a random,
+// unrestricted 2-card villain hand and enumerating exact outcomes. Range-based hand
+// drawing (RandomHandRange) is game-agnostic and lives in PEval.
 using PokerCalculator;
 using System;
 using System.Runtime.CompilerServices;
@@ -24,132 +25,9 @@ namespace PokerCalculator
         }
 
 
-        public static void RandomHand(ulong heroCards, ulong currentBoard, int boardCardsLeft, out ulong boardCards, out ulong villainCards, Random R)
-        {
-            int next;
-            ulong n;
-            ulong allCards;
-            int j = 0;
-
-            allCards = heroCards | currentBoard;
-
-            while (j < boardCardsLeft)
-            {
-                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                n = CONSTANTS.ONE << next;
-                while ((allCards & n) > 0)
-                {
-                    next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                    n = CONSTANTS.ONE << next;
-                }
-                allCards |= n;
-                j++;
-            }
-            boardCards = allCards ^ heroCards;
-
-            // Villain first card.
-            next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-            n = CONSTANTS.ONE << next;
-            while ((allCards & n) > 0)
-            {
-                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                n = CONSTANTS.ONE << next;
-            }
-            allCards |= n;
-
-            // Villain second card.
-            next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-            n = CONSTANTS.ONE << next;
-            while ((allCards & n) > 0)
-            {
-                next = R.Next(0, CONSTANTS.CARDS_TOTAL);
-                n = CONSTANTS.ONE << next;
-            }
-            allCards |= n;
-
-            villainCards = allCards ^ heroCards ^ boardCards;
-
-        }
-
-        // Draw one villain hand from a range, then draw the rest of the board.
-        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, out ulong boardCards, out ulong villainCards, Random R)
-        {
-            ulong n;
-            ulong allCards;
-            int j = 0;
-
-            allCards = heroCards | currentBoard;
-
-            // Villain pocket cards.
-            villainCards = range[R.Next(0, rangesize)];
-            while ((allCards & villainCards) > 0)
-            {
-                villainCards = range[R.Next(0, rangesize)];
-            }
-
-            allCards |= villainCards;
-
-            // Board cards.
-            while (j < boardCardsLeft)
-            {
-                n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                while ((allCards & n) > 0)
-                {
-                    n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                }
-                allCards |= n;
-                j++;
-            }
-
-            boardCards = allCards ^ heroCards ^ villainCards;
-
-        }
-
-        // Draw one hand per villain from each range, then draw the rest of the board.
-        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, out ulong boardCards, out ulong[] villainCards, Random R)
-        {
-            ulong n;
-            ulong allCards = 0;
-            int j = 0;
-            villainCards = new ulong[nVillains];
-
-
-            int v;
-            bool TryAgain = true;
-
-            // Villain pocket pairs.
-            while (TryAgain)
-            {
-                TryAgain = false;
-                v = 0;
-                allCards = heroCards | currentBoard;
-                // If a duplicate card is drawn, the process must start over to avoid errors in the probability calculations.
-                // This may lead to infinite loops with many players and small, overlapping ranges.
-                while (!TryAgain && v < nVillains)
-                {
-                    villainCards[v] = range[v, R.Next(0, rangesize[v])];
-                    TryAgain = (allCards & villainCards[v]) > 0;
-                    allCards |= villainCards[v];
-                    v++;
-                }
-
-            }
-
-            boardCards = currentBoard;
-            // Board cards.
-            while (j < boardCardsLeft)
-            {
-                n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                while ((allCards & n) > 0)
-                {
-                    n = CONSTANTS.ONE << R.Next(0, CONSTANTS.CARDS_TOTAL);
-                }
-                allCards |= n;
-                boardCards |= n;
-                j++;
-            }
-
-        }
+        // Draws a board and a random, unrestricted 2-card villain hand.
+        public static void RandomHand(ulong heroCards, ulong currentBoard, int boardCardsLeft, out ulong boardCards, out ulong villainCards, Random R) =>
+            PEval.RandomHand(heroCards, currentBoard, boardCardsLeft, 2, out boardCards, out villainCards, R);
 
         public static MatchupResult SimulateMatchup(ulong heroHand, ulong currentBoard, int boardCardsLeft, Random random)
         {

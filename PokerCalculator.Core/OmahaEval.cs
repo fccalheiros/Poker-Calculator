@@ -1,5 +1,7 @@
 ﻿// Omaha hand evaluation: unlike Hold'em, the best hand must use exactly two pocket
-// cards and three board cards, so every such combination has to be tried.
+// cards and three board cards, so every such combination has to be tried. Villain
+// hands have 4 hole cards instead of 2 (RandomHand), but range-based hand drawing
+// (RandomHandRange) is game-agnostic and lives in PEval.
 using System;
 
 namespace PokerCalculator
@@ -50,6 +52,25 @@ namespace PokerCalculator
             }
 
             return finalResult;
+        }
+
+        // Draws a board and a random, unrestricted 4-card villain hand.
+        public static void RandomHand(ulong heroCards, ulong currentBoard, int boardCardsLeft, out ulong boardCards, out ulong villainCards, Random R) =>
+            PEval.RandomHand(heroCards, currentBoard, boardCardsLeft, 4, out boardCards, out villainCards, R);
+
+        public static MatchupResult SimulateMatchup(ulong heroHand, ulong currentBoard, int boardCardsLeft, Random random)
+        {
+            RandomHand(heroHand, currentBoard, boardCardsLeft, out ulong board, out ulong villainHand, random);
+            int heroResult = ProcessCardSet(heroHand, board);
+            int villainResult = ProcessCardSet(villainHand, board);
+
+            if (heroResult > villainResult)
+                return MatchupResult.Win;
+
+            if (heroResult < villainResult)
+                return MatchupResult.Loss;
+
+            return MatchupResult.Tie;
         }
 
         public static void StripCardSet(ulong cardSet, out ulong[] stripedCards)

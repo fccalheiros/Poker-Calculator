@@ -92,16 +92,33 @@ public class EquityService
         return range;
     }
 
-    // Decides how many simulations this request gets - full precision, or reduced under
-    // load - and how that total is split across Parallelism sub-tasks.
+    // Decides how many simulations this request gets and how that total is split across
+    // sub-tasks. Both the simulation count and the parallelism scale down together as the
+    // queue fills up: every time the queue's free capacity halves again, the divisor
+    // doubles (2, 4, 8, ...), capped at MaxLoadDivisor so a nearly-full queue still gets a
+    // usable batch instead of being throttled to a single simulation.
     private long[] PlanSimulations()
     {
-        int pending = _pool.PendingCount;
-        bool underLoad = pending > _options.MaxQueueSize / 2;
-        long totalSimulations = underLoad ? _options.ReducedSimulations : _options.FullSimulations;
+        int divisor = ComputeLoadDivisor(_pool.PendingCount, _options.MaxQueueSize, _options.MaxLoadDivisor);
 
-        int parallelism = Math.Max(1, _options.Parallelism);
+        long totalSimulations = Math.Max(1, _options.FullSimulations / divisor);
+        int parallelism = Math.Max(1, _options.Parallelism / divisor);
+
         return SplitEvenly(totalSimulations, parallelism).Where(s => s > 0).ToArray();
+    }
+
+    // Returns 1 while at least half the queue is free. Each time the free capacity halves
+    // again (1/4 free, 1/8 free, ...) the divisor doubles, up to maxLoadDivisor.
+    private static int ComputeLoadDivisor(int pending, int maxQueueSize, int maxLoadDivisor)
+    {
+        if (maxQueueSize <= 0) return 1;
+
+        long freeSlots = Math.Max(0, maxQueueSize - pending);
+
+        int divisor = 1;
+        while (divisor < maxLoadDivisor && freeSlots * (divisor * 2) <= maxQueueSize)
+            divisor *= 2;
+        return divisor;
     }
 
     private static long[] SplitEvenly(long total, int parts)
