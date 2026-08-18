@@ -1097,7 +1097,7 @@ namespace PokerCalculator
                 //PokerEval.RandomHand(c, Program.FMDistribution.CardsSelection, Program.FMDistribution.SelectionSize, R);
 
 
-                HoldemEval.RandomHandRange(herohand, 0, 5, Program.FMDistribution.RangeSelection, Program.FMDistribution.SelectionSize, out board, out villainhand, R);
+                HoldemEval.RandomHandRange(herohand, 0, 5, Program.FMDistribution.RangeSelection, Program.FMDistribution.SelectionSize, 1000, out board, out villainhand, R);
                 heroResult = HoldemEval.ProcessCardSet(herohand | board);
                 villainResult = HoldemEval.ProcessCardSet(villainhand | board);
 
@@ -1168,7 +1168,7 @@ namespace PokerCalculator
             for (ulong i = 0; i < nSimul; i++)
             {
 
-                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, range, rangesize, out board, out villainhand, R);
+                HoldemEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, range, rangesize, 1000, out board, out villainhand, R);
                 heroResult = HoldemEval.ProcessCardSet(herohand | board);
                 bestvillainResult = 0;
 

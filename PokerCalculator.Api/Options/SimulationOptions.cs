@@ -31,4 +31,12 @@ public class SimulationOptions
     public int MaxRangeTokensPerVillainOmaha { get; set; } = 100;
 
     public long MaxRequestBodyBytes { get; set; } = 512 * 1024;
+
+    // Upper bound on how many times PEval.RandomHandRange retries a colliding villain-card
+    // draw before giving up with UnsatisfiableRangeException. Guards against villain ranges
+    // that can never coexist without colliding - e.g. two villains restricted to ranges that
+    // together claim every remaining combo - which would otherwise spin a worker thread
+    // forever. Each attempt is cheap (a handful of bitwise ops per villain), so even a few
+    // thousand attempts costs microseconds.
+    public int MaxDealAttempts { get; set; } = 1000;
 }

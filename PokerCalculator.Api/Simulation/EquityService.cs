@@ -252,12 +252,12 @@ public class EquityService
                 {
                     if (multiRange is not null)
                     {
-                        server.Configure(hero, (ulong)sims, board, boardCardsLeft, multiRange, multiRangeSize!, villainCount, Callback, cancellationToken, game);
+                        server.Configure(hero, (ulong)sims, board, boardCardsLeft, multiRange, multiRangeSize!, villainCount, Callback, cancellationToken, game, _options.MaxDealAttempts);
                         server.SimulateRangeN();
                     }
                     else if (singleRange is not null)
                     {
-                        server.Configure(hero, (ulong)sims, board, boardCardsLeft, singleRange, singleRange.Length, Callback, cancellationToken, game);
+                        server.Configure(hero, (ulong)sims, board, boardCardsLeft, singleRange, singleRange.Length, Callback, cancellationToken, game, _options.MaxDealAttempts);
                         server.SimulateRange();
                     }
                     else

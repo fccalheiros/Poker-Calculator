@@ -10,5 +10,11 @@ namespace PokerCalculator
         {
             public static string InvalidRangeToken(string token) => $"Invalid range token: '{token}'";
         }
+
+        public static class Dealing
+        {
+            public static string MaxAttemptsExceeded(int maxAttempts) =>
+                $"Could not deal valid hands for all villain ranges after {maxAttempts} attempts; the ranges may be mutually exclusive given hero/board.";
+        }
     }
 }

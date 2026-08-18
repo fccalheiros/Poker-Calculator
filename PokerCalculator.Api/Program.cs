@@ -64,6 +64,10 @@ async Task<IResult> HandleEquity(EquityRequest request, EquityService equityServ
     {
         return Results.BadRequest(ex.Message);
     }
+    catch (UnsatisfiableRangeException ex)
+    {
+        return Results.BadRequest(ex.Message);
+    }
     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
     {
         // The client disconnected/cancelled; there is no one left to receive a response.

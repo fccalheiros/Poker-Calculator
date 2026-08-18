@@ -74,11 +74,15 @@ function validateVillainToken(token, game) {
 
   if (game === "Omaha") {
     if (t.length === 8) return parseCardString(t).error || null;
-    if (t.length === 4) {
-      for (const ch of t) if (cardRank(ch) < 0) return `Token Omaha inválido: '${t}'.`;
+    if (t.length >= 4 && t.length <= 6) {
+      const ranks = t.substring(0, 4);
+      const suffix = t.substring(4).toLowerCase();
+      for (const ch of ranks) if (cardRank(ch) < 0) return `Token Omaha inválido: '${t}'.`;
+      if (suffix !== "" && suffix !== "r" && suffix !== "s" && suffix !== "ds")
+        return `Sufixo inválido em '${t}' (use 'r', 's' ou 'ds').`;
       return null;
     }
-    return `Token Omaha deve ter 4 ranks (ex.: AAKK) ou um combo exato de 4 cartas (ex.: AhKdQsJc): '${t}'.`;
+    return `Token Omaha deve ter 4 ranks (ex.: AAKK, AAKKds) ou um combo exato de 4 cartas (ex.: AhKdQsJc): '${t}'.`;
   }
 
   if (t.length === 4) return parseCardString(t).error || null;
@@ -154,7 +158,7 @@ function onGameChange() {
   const game = currentGame();
   heroInput.placeholder = HERO_PLACEHOLDER[game];
   villainList.querySelectorAll("input[type=text]").forEach((input) => {
-    input.placeholder = game === "Omaha" ? "AAKK, AKQJ" : "AA, AKs, TT";
+    input.placeholder = game === "Omaha" ? "AAKK, AKQJds" : "AA, AKs, TT";
   });
   while (villainList.children.length > MAX_VILLAINS[game]) {
     villainList.lastElementChild.remove();

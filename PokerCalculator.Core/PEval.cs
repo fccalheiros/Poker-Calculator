@@ -607,8 +607,10 @@ namespace PokerCalculator
 
         // Draw one villain hand from a range, then draw the rest of the board. Game-agnostic:
         // each range entry is an opaque hand mask, so this works for both Hold'em (2-card)
-        // and Omaha (4-card) ranges.
-        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, out ulong boardCards, out ulong villainCards, Random R)
+        // and Omaha (4-card) ranges. maxAttempts bounds how many times a colliding draw is
+        // retried before giving up - if every combo in the range collides with hero/board,
+        // no number of retries would ever succeed, so this must not be unbounded.
+        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, ulong[] range, int rangesize, int maxAttempts, out ulong boardCards, out ulong villainCards, Random R)
         {
             ulong n;
             ulong allCards;
@@ -617,11 +619,14 @@ namespace PokerCalculator
             allCards = heroCards | currentBoard;
 
             // Villain pocket cards.
-            villainCards = range[R.Next(0, rangesize)];
-            while ((allCards & villainCards) > 0)
+            int attempts = 0;
+            do
             {
+                if (attempts >= maxAttempts)
+                    throw new UnsatisfiableRangeException(Messages.Dealing.MaxAttemptsExceeded(maxAttempts));
                 villainCards = range[R.Next(0, rangesize)];
-            }
+                attempts++;
+            } while ((allCards & villainCards) > 0);
 
             allCards |= villainCards;
 
@@ -642,7 +647,12 @@ namespace PokerCalculator
         }
 
         // Draw one hand per villain from each range, then draw the rest of the board.
-        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, out ulong boardCards, out ulong[] villainCards, Random R)
+        // maxAttempts bounds how many full restarts of the villain-draw pass are allowed
+        // before giving up. A restart on collision is the right move when some other
+        // combination of draws across villains would work - it eventually finds one. It's
+        // only wrong when no combination works at all, which looks identical from inside a
+        // single attempt, so the two cases can only be told apart by capping the retries.
+        public static void RandomHandRange(ulong heroCards, ulong currentBoard, int boardCardsLeft, int nVillains, ulong[,] range, int[] rangesize, int maxAttempts, out ulong boardCards, out ulong[] villainCards, Random R)
         {
             ulong n;
             ulong allCards = 0;
@@ -652,15 +662,19 @@ namespace PokerCalculator
 
             int v;
             bool TryAgain = true;
+            int attempts = 0;
 
             // Villain pocket pairs.
             while (TryAgain)
             {
+                if (attempts >= maxAttempts)
+                    throw new UnsatisfiableRangeException(Messages.Dealing.MaxAttemptsExceeded(maxAttempts));
+                attempts++;
+
                 TryAgain = false;
                 v = 0;
                 allCards = heroCards | currentBoard;
                 // If a duplicate card is drawn, the process must start over to avoid errors in the probability calculations.
-                // This may lead to infinite loops with many players and small, overlapping ranges.
                 while (!TryAgain && v < nVillains)
                 {
                     villainCards[v] = range[v, R.Next(0, rangesize[v])];

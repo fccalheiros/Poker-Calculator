@@ -3,8 +3,9 @@
 // "TT", "76"): a pair has 6 combos, a suited hand has 4, an offsuit hand has 12, and a
 // rank pair with no suffix has all 16 combined. ParseOmahaRange reads four-card notation:
 // either an exact combo (e.g. "AhKdQsJc") or a bare 4-rank pattern (e.g. "AAKK", "AKQJ"),
-// expanded to every suit assignment valid for that rank multiset. Omaha has no suit
-// qualifiers yet (single/double-suited, rainbow) - every valid suit combination is included.
+// optionally followed by a suitedness suffix - "r" (rainbow), "s" (single suited) or "ds"
+// (double suited) - classified by how many distinct suits the 4 cards use (4/3/<=2). No
+// suffix means every valid suit assignment for that rank multiset.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,8 +107,13 @@ namespace PokerCalculator
                     continue;
                 }
 
-                // Bare rank pattern, e.g. "AAKK", "AKQJ" - one char per hole card, no suffix.
-                if (token.Length != 4)
+                // Bare rank pattern, e.g. "AAKK", "AKQJ" - one char per hole card - with an
+                // optional suitedness suffix: "AAKKr", "AAKKs", "AAKKds".
+                if (token.Length < 4 || token.Length > 6)
+                    throw new FormatException(Messages.RangeParsing.InvalidRangeToken(rawToken));
+
+                string suffix = token.Length > 4 ? token.Substring(4).ToLowerInvariant() : string.Empty;
+                if (suffix != string.Empty && suffix != "r" && suffix != "s" && suffix != "ds")
                     throw new FormatException(Messages.RangeParsing.InvalidRangeToken(rawToken));
 
                 var ranks = new int[4];
@@ -119,10 +125,40 @@ namespace PokerCalculator
                 }
 
                 foreach (var combo in RankPatternCombos(ranks))
-                    combos.Add(combo);
+                {
+                    if (MatchesSuitQualifier(combo, suffix))
+                        combos.Add(combo);
+                }
             }
 
             return combos.ToArray();
+        }
+
+        // No suffix matches everything. Otherwise classifies a combo by how many distinct
+        // suits its 4 cards use: rainbow (r) uses all 4 suits, single suited (s) uses
+        // exactly 3 (one shared-suit pair), double suited (ds) uses 2 or fewer (two
+        // shared-suit pairs - or, only reachable with an all-distinct rank pattern like
+        // AKQJ, three or four cards sharing a suit).
+        private static bool MatchesSuitQualifier(ulong combo, string suffix)
+        {
+            if (suffix == string.Empty) return true;
+
+            int distinctSuits = CountDistinctSuits(combo);
+            return suffix switch
+            {
+                "r" => distinctSuits == 4,
+                "s" => distinctSuits == 3,
+                "ds" => distinctSuits <= 2,
+                _ => false
+            };
+        }
+
+        private static int CountDistinctSuits(ulong combo)
+        {
+            int count = 0;
+            for (int s = 0; s < 4; s++)
+                if (((combo >> (s * 13)) & 0x1FFFUL) != 0) count++;
+            return count;
         }
 
         // Expands a 4-rank pattern (repeats allowed, e.g. AAKK or AAAK) into every 4-card

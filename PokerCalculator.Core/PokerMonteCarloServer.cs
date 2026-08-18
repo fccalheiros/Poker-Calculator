@@ -24,9 +24,14 @@ namespace PokerCalculator
         private int nVillains;
         private ulong[,] rangeN;
         private int[] rangeSizeN;
+        private int maxDealAttempts;
 
         private simulCallBack cb;
         private CancellationToken cancellationToken;
+
+        // Fallback used only when a caller doesn't pass its own value (see Configure
+        // overloads below); PokerCalculator.Api always supplies its configured value.
+        private const int DefaultMaxDealAttempts = 1000;
 
         // A server with nothing configured yet; useful when a worker thread owns one
         // long-lived instance and reconfigures it via Configure(...) for each job.
@@ -64,7 +69,9 @@ namespace PokerCalculator
         }
 
         // Reconfigures this instance for a simulation against a single villain range.
-        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem)
+        // maxDealAttempts bounds PEval.RandomHandRange's collision-retry loop - see its
+        // doc comment and UnsatisfiableRangeException.
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[] r, int rS, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem, int maxDealAttempts = DefaultMaxDealAttempts)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -75,10 +82,11 @@ namespace PokerCalculator
             cb = callb;
             cancellationToken = token;
             gameType = game;
+            this.maxDealAttempts = maxDealAttempts;
         }
 
         // Reconfigures this instance for a simulation against multiple villain ranges.
-        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem)
+        public void Configure(ulong h, ulong n, ulong currboard, int bcl, ulong[,] r, int[] rS, int nV, simulCallBack callb, CancellationToken token = default, GameType game = GameType.Holdem, int maxDealAttempts = DefaultMaxDealAttempts)
         {
             herohand = h;
             numberOfSimulations = n;
@@ -90,6 +98,7 @@ namespace PokerCalculator
             cb = callb;
             cancellationToken = token;
             gameType = game;
+            this.maxDealAttempts = maxDealAttempts;
         }
 
         // How often (in iterations) the simulation loops poll the cancellation token.
@@ -142,7 +151,7 @@ namespace PokerCalculator
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
-                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, out board, out villainhand, R);
+                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, range, rangeSize, maxDealAttempts, out board, out villainhand, R);
 
                 if (gameType == GameType.Omaha)
                 {
@@ -191,7 +200,7 @@ namespace PokerCalculator
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
-                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, out board, out villainhand, R);
+                PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, maxDealAttempts, out board, out villainhand, R);
 
                 heroResult = gameType == GameType.Omaha
                     ? OmahaEval.ProcessCardSet(herohand, board)
