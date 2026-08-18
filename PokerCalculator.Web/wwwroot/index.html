@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Poker Equity Calculator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="felt">
+    <main class="table">
+      <header class="table-header">
+        <h1><span class="suit red">&hearts;</span> Poker Equity Calculator <span class="suit black">&spades;</span></h1>
+
+        <div class="game-toggle" role="radiogroup" aria-label="Jogo">
+          <input type="radio" id="game-holdem" name="game" value="Holdem" checked>
+          <label for="game-holdem">Hold'em</label>
+          <input type="radio" id="game-omaha" name="game" value="Omaha">
+          <label for="game-omaha">Omaha</label>
+        </div>
+      </header>
+
+      <form id="equity-form" novalidate>
+        <div class="field">
+          <label for="hero">Sua mão (hero)</label>
+          <input type="text" id="hero" placeholder="AhKs" autocomplete="off" spellcheck="false">
+          <span class="error" id="hero-error"></span>
+        </div>
+
+        <div class="field">
+          <label for="board">Board <span class="hint">(opcional)</span></label>
+          <input type="text" id="board" placeholder="2h7c9d" autocomplete="off" spellcheck="false">
+          <span class="error" id="board-error"></span>
+        </div>
+
+        <div class="field villains">
+          <div class="villains-label-row">
+            <label>Vilões <span class="hint">(um por linha; ranges separados por vírgula)</span></label>
+            <button type="button" id="add-villain" class="chip-btn">+ vilão</button>
+          </div>
+          <div id="villain-list"></div>
+        </div>
+
+        <button type="submit" id="submit-btn" class="primary-btn">Calcular equity</button>
+      </form>
+
+      <section id="result" class="result hidden" aria-live="polite">
+        <div class="stat">
+          <span class="stat-label">Win</span>
+          <span class="stat-value" id="stat-win">-</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Loss</span>
+          <span class="stat-value" id="stat-loss">-</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Tie</span>
+          <span class="stat-value" id="stat-tie">-</span>
+        </div>
+        <div class="stat highlight">
+          <span class="stat-label">Equity</span>
+          <span class="stat-value" id="stat-equity">-</span>
+        </div>
+        <div class="meta">
+          <span id="stat-sims"></span>
+          <span id="stat-cache" class="badge hidden">do cache</span>
+        </div>
+      </section>
+
+      <div id="api-error" class="api-error hidden" role="alert"></div>
+
+      <details class="api-config">
+        <summary>Configuração da API</summary>
+        <label for="api-base">URL base</label>
+        <input type="text" id="api-base" value="http://localhost:5113">
+      </details>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

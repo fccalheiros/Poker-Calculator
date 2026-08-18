@@ -19,6 +19,9 @@
     <Compile Remove="PokerCalculator.Api\**" />
     <EmbeddedResource Remove="PokerCalculator.Api\**" />
     <None Remove="PokerCalculator.Api\**" />
+    <Compile Remove="PokerCalculator.Web\**" />
+    <EmbeddedResource Remove="PokerCalculator.Web\**" />
+    <None Remove="PokerCalculator.Web\**" />
   </ItemGroup>
 
   <ItemGroup>
