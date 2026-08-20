@@ -22,23 +22,27 @@
 
       <form id="equity-form" novalidate>
         <div class="field">
-          <label for="hero">Sua mão (hero)</label>
-          <input type="text" id="hero" placeholder="AhKs" autocomplete="off" spellcheck="false">
+          <div class="section-header"><label>Sua mão (hero)</label></div>
+          <div id="hero-grid"></div>
+          <div class="preview-row" id="hero-preview"></div>
           <span class="error" id="hero-error"></span>
         </div>
 
         <div class="field">
-          <label for="board">Board <span class="hint">(opcional)</span></label>
-          <input type="text" id="board" placeholder="2h7c9d" autocomplete="off" spellcheck="false">
+          <div class="section-header"><label>Board <span class="hint">(opcional)</span></label></div>
+          <div id="board-grid"></div>
+          <div class="preview-row" id="board-preview"></div>
           <span class="error" id="board-error"></span>
         </div>
 
         <div class="field villains">
           <div class="villains-label-row">
-            <label>Vilões <span class="hint">(um por linha; ranges separados por vírgula)</span></label>
+            <label>Vilões</label>
             <button type="button" id="add-villain" class="chip-btn">+ vilão</button>
           </div>
-          <div id="villain-list"></div>
+          <div class="villain-tabs" id="villain-tabs"></div>
+          <div id="range-editor"></div>
+          <span class="error" id="villain-error"></span>
         </div>
 
         <button type="submit" id="submit-btn" class="primary-btn">Calcular equity</button>
@@ -72,7 +76,7 @@
       <details class="api-config">
         <summary>Configuração da API</summary>
         <label for="api-base">URL base</label>
-        <input type="text" id="api-base" value="http://localhost:5113">
+        <input type="text" id="api-base" value="" placeholder="deixe em branco para usar este servidor">
       </details>
     </main>
   </div>

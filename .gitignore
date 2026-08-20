@@ -397,3 +397,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /.github/copilot-instructions.md
+
+# Deploy scripts (contain VM IP / SSH key path)
+/deploy.ps1
+/deploy.bat

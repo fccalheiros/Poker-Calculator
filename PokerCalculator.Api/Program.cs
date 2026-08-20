@@ -31,20 +31,7 @@ builder.Services.AddSingleton<SimulationWorkerPool>();
 builder.Services.AddSingleton<EquityCache>();
 builder.Services.AddScoped<EquityService>();
 
-// Lets the PokerCalculator.Web static site (a different origin/port) call this API
-// straight from the browser.
-const string WebClientCorsPolicy = "WebClient";
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(WebClientCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:5180")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
-
 var app = builder.Build();
-
-app.UseCors(WebClientCorsPolicy);
 
 // Shared by all three routes below: computes equity and maps EquityService's failure
 // modes to HTTP responses. The /holdem and /omaha routes are pure convenience - same
