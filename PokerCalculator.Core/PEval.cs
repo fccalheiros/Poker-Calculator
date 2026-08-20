@@ -1,6 +1,7 @@
 ﻿// Core bitmask card-set representation and the fast hand evaluator (GeneralProcessCardSet)
 // that HoldemEval and OmahaEval build on, plus card/string conversion helpers.
 using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace PokerCalculator
@@ -112,11 +113,15 @@ namespace PokerCalculator
                 // Trips or two pair.
                 if (cc == 5)
                 {
+                    // Two pair (~82%) is far more common than trips (~18%) among 7-card hands
+                    // that land in this branch, and cheaper to compute (4 XORs vs 7 bitwise
+                    // ops) - so it's checked first. Given cc == 5, these are the only two
+                    // possible shapes (3+1+1+1+1 or 2+2+1+1+1), so no pair > 0 check is needed.
+                    int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
+                    if (pair > 0) return CONSTANTS.TWOPAIR | pair << 13 | cleanLSB2(pair ^ CHSD_OR);
                     //C & H & S | C & H & D | C & S & D | H & S & D;
                     int trips = (C & H & (S | D)) | (S & D & (C | H));
-                    if (trips > 0) return CONSTANTS.TRIPS | trips << 13 | cleanLSB2(trips ^ CHSD_OR);
-                    int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
-                    return CONSTANTS.TWOPAIR | pair << 13 | cleanLSB2(pair ^ CHSD_OR);
+                    return CONSTANTS.TRIPS | trips << 13 | cleanLSB2(trips ^ CHSD_OR);
                 }
 
             }
@@ -168,27 +173,42 @@ namespace PokerCalculator
         }
 
 
-        // Adapted from the PokerStove GitLab project.
+        // Previous implementation, kept for posterity - replaced by BitOperations.PopCount
+        // below (hardware POPCNT/CNT instead of a loop over each set bit).
+        // public static int bitCount(int subset)
+        // {
+        //     // subset - 13 bits from right to left 2 - A
+        //     int c;
+        //     for (c = 0; subset > 0; c++)
+        //     {
+        //         subset &= subset - 1;
+        //     }
+        //     return c;
+        // }
+        //
+        // public static int bitCount(ulong set)
+        // {
+        //     // Subset - 52 bits from right to left 2-A containing all suits.
+        //     int c;
+        //     for (c = 0; set > 0; c++)
+        //     {
+        //         set &= set - 1;
+        //     }
+        //     return c;
+        // }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int bitCount(int subset)
         {
             // subset - 13 bits from right to left 2 - A
-            int c;
-            for (c = 0; subset > 0; c++)
-            {
-                subset &= subset - 1;
-            }
-            return c;
+            return BitOperations.PopCount((uint)subset);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int bitCount(ulong set)
         {
             // Subset - 52 bits from right to left 2-A containing all suits.
-            int c;
-            for (c = 0; set > 0; c++)
-            {
-                set &= set - 1;
-            }
-            return c;
+            return BitOperations.PopCount(set);
         }
 
         // Clear the least significant set bit.
@@ -215,16 +235,16 @@ namespace PokerCalculator
             return c & (c - 1);
         }
 
-        // Clear the least significant set bit.
+        // Clear the least significant set bit, `times` times. Only called for flush hands
+        // as cleanLSB(fl, flushcc - 5), where flushcc (5-7) bounds times to 0, 1 or 2 - so
+        // this is unrolled instead of looped.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int cleanLSB(int subset, int times)
         {
             // subset - 13 bits from right to left 2 - A
             int c = subset;
-
-            for (int i = 0; i < times; i++)
-            {
-                c &= c - 1;
-            }
+            if (times >= 1) c &= c - 1;
+            if (times >= 2) c &= c - 1;
             return c;
         }
 

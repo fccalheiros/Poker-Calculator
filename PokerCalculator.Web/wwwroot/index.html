@@ -22,16 +22,25 @@
 
       <form id="equity-form" novalidate>
         <div class="field">
-          <div class="section-header"><label>Sua mão (hero)</label></div>
-          <div id="hero-grid"></div>
-          <div class="preview-row" id="hero-preview"></div>
-          <span class="error" id="hero-error"></span>
-        </div>
+          <div class="section-header">
+            <label>Cartas</label>
+            <div class="picker-toggle" id="picker-toggle" role="radiogroup" aria-label="Selecionando cartas para">
+              <button type="button" class="picker-toggle-btn active" data-target="hero">Hero</button>
+              <button type="button" class="picker-toggle-btn" data-target="board">Board</button>
+            </div>
+          </div>
+          <div id="card-grid"></div>
 
-        <div class="field">
-          <div class="section-header"><label>Board <span class="hint">(opcional)</span></label></div>
-          <div id="board-grid"></div>
-          <div class="preview-row" id="board-preview"></div>
+          <div class="picker-row">
+            <span class="picker-row-label">Hero</span>
+            <div class="preview-row" id="hero-preview"></div>
+          </div>
+          <span class="error" id="hero-error"></span>
+
+          <div class="picker-row">
+            <span class="picker-row-label">Board <span class="hint">(opcional)</span></span>
+            <div class="preview-row" id="board-preview"></div>
+          </div>
           <span class="error" id="board-error"></span>
         </div>
 

@@ -41,12 +41,12 @@ body {
 
 .table {
   width: 100%;
-  max-width: 680px;
+  max-width: 1040px;
   background: var(--card-bg);
   border-radius: 16px;
   border: 3px solid var(--gold);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
-  padding: 28px 32px 32px;
+  padding: 32px 44px 44px;
 }
 
 .table-header h1 {
@@ -88,7 +88,8 @@ body {
 }
 
 .game-toggle label {
-  padding: 8px 22px;
+  padding: 12px 33px;
+  font-size: 1.15rem;
   cursor: pointer;
   font-weight: 600;
   color: var(--felt-dark);
@@ -121,8 +122,8 @@ label {
 
 input[type="text"] {
   width: 100%;
-  padding: 10px 12px;
-  font-size: 1rem;
+  padding: 15px 18px;
+  font-size: 1.15rem;
   border: 2px solid #d9d2bd;
   border-radius: 8px;
   background: #fff;
@@ -165,9 +166,9 @@ input[type="text"]:focus {
   border: 2px solid var(--error);
   color: var(--error);
   border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  font-size: 1.1rem;
+  width: 60px;
+  height: 60px;
+  font-size: 1.65rem;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -181,9 +182,9 @@ input[type="text"]:focus {
   background: var(--gold);
   border: none;
   border-radius: 999px;
-  padding: 4px 14px;
+  padding: 6px 21px;
   font-weight: 600;
-  font-size: 0.82rem;
+  font-size: 1.23rem;
   cursor: pointer;
   color: var(--felt-dark);
 }
@@ -199,8 +200,8 @@ input[type="text"]:focus {
 
 .primary-btn {
   width: 100%;
-  padding: 13px;
-  font-size: 1.05rem;
+  padding: 19px;
+  font-size: 1.55rem;
   font-weight: 700;
   border: none;
   border-radius: 999px;
@@ -320,12 +321,61 @@ input[type="text"]:focus {
   color: var(--felt-dark);
 }
 
+.picker-toggle,
+.villain-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 2px solid var(--felt-dark);
+  border-radius: 999px;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.picker-toggle-btn,
+.villain-tab {
+  padding: 11px 21px;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--felt-dark);
+  background: var(--card-bg);
+  border: none;
+  border-right: 1px solid rgba(11, 61, 46, 0.15);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.picker-toggle-btn:last-child,
+.villain-tab:last-child {
+  border-right: none;
+}
+
+.picker-toggle-btn.active,
+.villain-tab.active {
+  background: var(--felt-dark);
+  color: var(--card-bg);
+}
+
+.picker-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.picker-row-label {
+  font-weight: 600;
+  font-size: 1.05rem;
+  min-width: 62px;
+  flex-shrink: 0;
+}
+
 /* Hero/Board exact-card pickers: 4 suit rows x 13 rank columns. */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(13, 26px);
-  grid-template-rows: repeat(4, 24px);
-  gap: 2px;
+  grid-template-columns: repeat(13, 39px);
+  grid-template-rows: repeat(4, 36px);
+  gap: 3px;
   margin-bottom: 8px;
 }
 
@@ -333,9 +383,9 @@ input[type="text"]:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 5px;
   font-family: "Consolas", "SF Mono", monospace;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 700;
   background: #fff;
   border: 1px solid #d9d2bd;
@@ -366,15 +416,15 @@ input[type="text"]:focus {
 .preview-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
+  gap: 9px;
+  min-height: 60px;
   flex-wrap: wrap;
 }
 
 .card-chip {
-  width: 28px;
-  height: 38px;
-  border-radius: 5px;
+  width: 42px;
+  height: 57px;
+  border-radius: 6px;
   background: #fff;
   border: 2px solid #d9d2bd;
   display: flex;
@@ -382,7 +432,7 @@ input[type="text"]:focus {
   justify-content: center;
   font-family: "Consolas", "SF Mono", monospace;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 1.2rem;
 }
 
 .card-chip.red {
@@ -395,35 +445,7 @@ input[type="text"]:focus {
 
 /* Villain tabs */
 .villain-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  border: 2px solid var(--felt-dark);
-  border-radius: 999px;
-  overflow: hidden;
-  width: fit-content;
   margin-bottom: 14px;
-}
-
-.villain-tab {
-  padding: 7px 14px;
-  font-weight: 600;
-  font-size: 0.8rem;
-  color: var(--felt-dark);
-  background: var(--card-bg);
-  border: none;
-  border-right: 1px solid rgba(11, 61, 46, 0.15);
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.villain-tab:last-child {
-  border-right: none;
-}
-
-.villain-tab.active {
-  background: var(--felt-dark);
-  color: var(--card-bg);
 }
 
 .range-editor-box {
@@ -459,9 +481,9 @@ input[type="text"]:focus {
 
 .range-grid {
   display: grid;
-  grid-template-columns: repeat(13, 28px);
-  grid-template-rows: repeat(13, 28px);
-  gap: 2px;
+  grid-template-columns: repeat(13, 42px);
+  grid-template-rows: repeat(13, 42px);
+  gap: 3px;
   margin-bottom: 12px;
 }
 
@@ -469,9 +491,9 @@ input[type="text"]:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: 5px;
   font-family: "Consolas", "SF Mono", monospace;
-  font-size: 8.5px;
+  font-size: 13px;
   font-weight: 700;
   border: 1px solid transparent;
   cursor: pointer;
@@ -513,16 +535,16 @@ input[type="text"]:focus {
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
+  gap: 9px;
+  font-size: 1.1rem;
   color: var(--muted);
 }
 
 .swatch {
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
   border: 1px solid transparent;
 }
 
@@ -568,8 +590,8 @@ input[type="text"]:focus {
 .percent-readout {
   font-weight: 700;
   color: var(--felt-dark);
-  font-size: 0.85rem;
-  min-width: 58px;
+  font-size: 1.28rem;
+  min-width: 87px;
   text-align: right;
 }
 
@@ -589,35 +611,35 @@ input[type="text"]:focus {
 .builder-box {
   background: var(--card-bg);
   border: 2px solid #e6dfc9;
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 18px;
   margin-bottom: 14px;
 }
 
 .builder-label {
-  font-size: 0.76rem;
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   display: block;
 }
 
 .slots {
   display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .slot {
-  width: 38px;
-  height: 44px;
-  border-radius: 6px;
+  width: 57px;
+  height: 66px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "Consolas", "SF Mono", monospace;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.55rem;
   padding: 0;
   cursor: default;
 }
@@ -643,14 +665,14 @@ input[type="text"]:focus {
 }
 
 .rank-key {
-  padding: 7px 0;
+  padding: 11px 0;
   text-align: center;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #fff;
   border: 1px solid #d9d2bd;
   font-family: "Consolas", "SF Mono", monospace;
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 1.17rem;
   color: var(--felt-dark);
   cursor: pointer;
 }
@@ -679,9 +701,9 @@ input[type="text"]:focus {
 }
 
 .qualifier-tab {
-  padding: 6px 12px;
+  padding: 9px 18px;
   font-weight: 600;
-  font-size: 0.74rem;
+  font-size: 1.1rem;
   color: var(--felt-dark);
   background: #fff;
   border: none;
@@ -719,13 +741,13 @@ input[type="text"]:focus {
 .token-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 9px;
   background: var(--card-bg);
   border: 2px solid #e6dfc9;
   border-radius: 999px;
-  padding: 4px 6px 4px 12px;
+  padding: 6px 9px 6px 18px;
   font-family: "Consolas", "SF Mono", monospace;
-  font-size: 0.8rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--felt-dark);
 }
@@ -734,8 +756,8 @@ input[type="text"]:focus {
   background: var(--suited-bg);
   color: var(--suited-ink);
   border-radius: 999px;
-  padding: 1px 8px;
-  font-size: 0.66rem;
+  padding: 2px 12px;
+  font-size: 1rem;
   font-weight: 700;
   font-family: "Segoe UI", system-ui, sans-serif;
 }
@@ -746,13 +768,13 @@ input[type="text"]:focus {
 }
 
 .remove-x {
-  width: 18px;
-  height: 18px;
+  width: 27px;
+  height: 27px;
   border-radius: 999px;
   border: none;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 16px;
   cursor: pointer;
   padding: 0;
 }

@@ -64,15 +64,15 @@ let villains = [createVillain()];
 let activeVillainIndex = 0;
 let omahaSlots = []; // ranks currently being built for the active villain's Omaha token
 let omahaQualifier = null;
-let cardPickerTarget = "hero"; // which set new clicks currently affect isn't needed - hero/board each have their own grid
+let cardPickerTarget = "hero"; // "hero" | "board" - which set the single shared grid currently edits
 
 // --- DOM references ---
 
 const form = document.getElementById("equity-form");
-const heroGridEl = document.getElementById("hero-grid");
+const pickerToggleEl = document.getElementById("picker-toggle");
+const cardGridEl = document.getElementById("card-grid");
 const heroPreviewEl = document.getElementById("hero-preview");
 const heroError = document.getElementById("hero-error");
-const boardGridEl = document.getElementById("board-grid");
 const boardPreviewEl = document.getElementById("board-preview");
 const boardError = document.getElementById("board-error");
 const villainTabsEl = document.getElementById("villain-tabs");
@@ -143,8 +143,9 @@ function toggleHeroCard(code) {
     if (heroCards.length >= HERO_CARD_COUNT[currentGame()]) return;
     heroCards.push(code);
   }
-  renderHeroSection();
-  renderBoardSection();
+  renderCardPicker();
+  renderHeroPreview();
+  renderBoardPreview();
 }
 
 function toggleBoardCard(code) {
@@ -156,19 +157,44 @@ function toggleBoardCard(code) {
     if (boardCards.length >= 5) return;
     boardCards.push(code);
   }
-  renderBoardSection();
-  renderHeroSection();
+  renderCardPicker();
+  renderHeroPreview();
+  renderBoardPreview();
 }
 
-function renderHeroSection() {
-  renderCardGrid(heroGridEl, heroCards, boardCards, HERO_CARD_COUNT[currentGame()], toggleHeroCard);
+function renderHeroPreview() {
   renderCardPreview(heroPreviewEl, heroCards);
 }
 
-function renderBoardSection() {
-  renderCardGrid(boardGridEl, boardCards, heroCards, 5, toggleBoardCard);
+function renderBoardPreview() {
   renderCardPreview(boardPreviewEl, boardCards);
 }
+
+// Renders the single shared card grid for whichever target (hero/board) is currently
+// selected via the picker toggle; the other set's cards still show as blocked.
+function renderCardPicker() {
+  if (cardPickerTarget === "hero") {
+    renderCardGrid(cardGridEl, heroCards, boardCards, HERO_CARD_COUNT[currentGame()], toggleHeroCard);
+  } else {
+    renderCardGrid(cardGridEl, boardCards, heroCards, 5, toggleBoardCard);
+  }
+}
+
+function renderPickerToggle() {
+  pickerToggleEl.querySelectorAll(".picker-toggle-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.target === cardPickerTarget);
+  });
+}
+
+function setPickerTarget(target) {
+  cardPickerTarget = target;
+  renderPickerToggle();
+  renderCardPicker();
+}
+
+pickerToggleEl.querySelectorAll(".picker-toggle-btn").forEach((btn) => {
+  btn.addEventListener("click", () => setPickerTarget(btn.dataset.target));
+});
 
 // --- Villain range editor: Hold'em 13x13 grid ---
 
@@ -543,9 +569,12 @@ function onGameChange() {
   activeVillainIndex = 0;
   omahaSlots = [];
   omahaQualifier = null;
+  cardPickerTarget = "hero";
   clearErrors();
-  renderHeroSection();
-  renderBoardSection();
+  renderPickerToggle();
+  renderCardPicker();
+  renderHeroPreview();
+  renderBoardPreview();
   renderVillainTabs();
   renderRangeEditor();
 }
@@ -685,7 +714,9 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-renderHeroSection();
-renderBoardSection();
+renderPickerToggle();
+renderCardPicker();
+renderHeroPreview();
+renderBoardPreview();
 renderVillainTabs();
 renderRangeEditor();
