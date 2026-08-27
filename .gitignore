@@ -401,3 +401,6 @@ FodyWeavers.xsd
 # Deploy scripts (contain VM IP / SSH key path)
 /deploy.ps1
 /deploy.bat
+
+# Claude Code project notes (kept local, not shared via the repo)
+/CLAUDE.md
