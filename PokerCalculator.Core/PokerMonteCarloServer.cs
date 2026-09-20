@@ -117,12 +117,16 @@ namespace PokerCalculator
 
             win = 0; tie = 0; lost = 0;
 
+            // herohand never changes across this batch - decompose it once here rather than
+            ulong[] heroStripped = null;
+            if (gameType == GameType.Omaha) OmahaEval.StripCardSet(herohand, out heroStripped);
+
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
                 results[(int)(gameType == GameType.Omaha
-                    ? OmahaEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R)
+                    ? OmahaEval.SimulateMatchup(heroStripped, herohand, currentBoard, boardCardsLeft, R)
                     : HoldemEval.SimulateMatchup(herohand, currentBoard, boardCardsLeft, R))]++;
             }
             win = results[(int)MatchupResult.Win];
@@ -147,6 +151,10 @@ namespace PokerCalculator
             win = 0; tie = 0; lost = 0;
             tieEquity = 0;
 
+            // herohand never changes across this batch - see the same note in Simulate().
+            ulong[] heroStripped = null;
+            if (gameType == GameType.Omaha) OmahaEval.StripCardSet(herohand, out heroStripped);
+
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
@@ -155,8 +163,11 @@ namespace PokerCalculator
 
                 if (gameType == GameType.Omaha)
                 {
-                    heroResult = OmahaEval.ProcessCardSet(herohand, board);
-                    villainResult = OmahaEval.ProcessCardSet(villainhand, board);
+                    // board is the same value for both calls below - strip it once and reuse.
+                    OmahaEval.StripCardSet(board, out ulong[] boardStripped);
+                    OmahaEval.StripCardSet(villainhand, out ulong[] villainStripped);
+                    heroResult = OmahaEval.ProcessCardSet(heroStripped, boardStripped);
+                    villainResult = OmahaEval.ProcessCardSet(villainStripped, boardStripped);
                 }
                 else
                 {
@@ -196,22 +207,38 @@ namespace PokerCalculator
             win = 0; tie = 0; lost = 0;
             tieEquity = 0;
 
+            // herohand never changes across this batch - see the same note in Simulate().
+            ulong[] heroStripped = null;
+            if (gameType == GameType.Omaha) OmahaEval.StripCardSet(herohand, out heroStripped);
+
             for (ulong i = 0; i < numberOfSimulations; i++)
             {
                 if (i % CancellationCheckInterval == 0 && cancellationToken.IsCancellationRequested) return;
 
                 PEval.RandomHandRange(herohand, currentBoard, boardCardsLeft, nVillains, rangeN, rangeSizeN, maxDealAttempts, out board, out villainhand, R);
 
+                // board is the same value for the hero call and every villain call below -
+                // strip it once and reuse, instead of once per villain (up to MaxVillainsOmaha
+                // times) on top of once for hero.
+                ulong[] boardStripped = null;
+                if (gameType == GameType.Omaha) OmahaEval.StripCardSet(board, out boardStripped);
+
                 heroResult = gameType == GameType.Omaha
-                    ? OmahaEval.ProcessCardSet(herohand, board)
+                    ? OmahaEval.ProcessCardSet(heroStripped, boardStripped)
                     : HoldemEval.ProcessCardSet(herohand, board);
                 bestvillainResult = 0;
 
                 for (int v = 0; v < nVillains; v++)
                 {
-                    villainResult[v] = gameType == GameType.Omaha
-                        ? OmahaEval.ProcessCardSet(villainhand[v], board)
-                        : HoldemEval.ProcessCardSet(villainhand[v], board);
+                    if (gameType == GameType.Omaha)
+                    {
+                        OmahaEval.StripCardSet(villainhand[v], out ulong[] villainStripped);
+                        villainResult[v] = OmahaEval.ProcessCardSet(villainStripped, boardStripped);
+                    }
+                    else
+                    {
+                        villainResult[v] = HoldemEval.ProcessCardSet(villainhand[v], board);
+                    }
                     if (villainResult[v] > bestvillainResult) bestvillainResult = villainResult[v];
                 }
 

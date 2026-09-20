@@ -60,9 +60,21 @@ namespace PokerCalculator
 
         public static MatchupResult SimulateMatchup(ulong heroHand, ulong currentBoard, int boardCardsLeft, Random random)
         {
+            StripCardSet(heroHand, out ulong[] heroHandStripped);
+            return SimulateMatchup(heroHandStripped, heroHand, currentBoard, boardCardsLeft, random);
+        }
+
+        public static MatchupResult SimulateMatchup(ulong[] heroHandStripped, ulong heroHand, ulong currentBoard, int boardCardsLeft, Random random)
+        {
             RandomHand(heroHand, currentBoard, boardCardsLeft, out ulong board, out ulong villainHand, random);
-            int heroResult = ProcessCardSet(heroHand, board);
-            int villainResult = ProcessCardSet(villainHand, board);
+
+            // board is the same value for both calls below - strip it once and reuse, rather
+            // than letting each ProcessCardSet call (via the ulong-board overloads) redo the
+            // same decomposition.
+            StripCardSet(board, out ulong[] boardStripped);
+            StripCardSet(villainHand, out ulong[] villainHandStripped);
+            int heroResult = ProcessCardSet(heroHandStripped, boardStripped);
+            int villainResult = ProcessCardSet(villainHandStripped, boardStripped);
 
             if (heroResult > villainResult)
                 return MatchupResult.Win;
