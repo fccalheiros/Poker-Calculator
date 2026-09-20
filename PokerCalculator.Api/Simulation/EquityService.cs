@@ -2,6 +2,7 @@
 // splitting the work into sub-tasks run on the fixed worker pool, joining the results,
 // and reading/writing the cache. Kept synchronous from the caller's point of view (the
 // endpoint awaits this call) per the current design - no async polling/callback queue yet.
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using PokerCalculator.Api.Contracts;
@@ -14,16 +15,20 @@ public class EquityService
     private readonly SimulationWorkerPool _pool;
     private readonly EquityCache _cache;
     private readonly SimulationOptions _options;
+    private readonly UsageStats _usage;
 
-    public EquityService(SimulationWorkerPool pool, EquityCache cache, IOptions<SimulationOptions> options)
+    public EquityService(SimulationWorkerPool pool, EquityCache cache, IOptions<SimulationOptions> options, UsageStats usage)
     {
         _pool = pool;
         _cache = cache;
         _options = options.Value;
+        _usage = usage;
     }
 
     public async Task<EquityResponse> ComputeEquity(EquityRequest request, CancellationToken cancellationToken = default)
     {
+        _usage.RecordRequest(request.Game);
+
         ValidateCardStrings(request.Hero, request.Board, request.Game);
 
         var villainRanges = NormalizeVillainRanges(request);
@@ -32,16 +37,24 @@ public class EquityService
 
         if (_cache.TryGet(cacheKey, out var cached))
         {
+            _usage.RecordCacheHit();
             return ToResponse(cached.Result, cached.Simulations, fromCache: true);
         }
+        _usage.RecordCacheMiss();
 
         (ulong hero, ulong board, int boardCardsLeft, ulong[]? singleRange, ulong[,]? multiRange, int[]? multiRangeSize) =
             ParseInput(request, villainRanges);
 
         long[] simsPerTask = PlanSimulations(request.Game);
 
+        // Wall-clock around the whole (parallel) batch, not summed per sub-task - the
+        // sub-tasks run concurrently on the worker pool, so summing their individual
+        // durations would inflate the number well past what the caller actually waited.
+        var stopwatch = Stopwatch.StartNew();
         SimulationResult total = await RunBatch(
             hero, board, boardCardsLeft, villainRanges.Count, singleRange, multiRange, multiRangeSize, request.Game, simsPerTask, cancellationToken);
+        stopwatch.Stop();
+        _usage.RecordComputeTime(request.Game, stopwatch.ElapsedTicks);
 
         long simulationsRun = simsPerTask.Sum();
 

@@ -31,4 +31,8 @@ public class EquityCache
     {
         _cache.Set(key, result, new MemoryCacheEntryOptions { Size = 1 });
     }
+
+    // MemoryCache (the concrete type AddMemoryCache() registers behind IMemoryCache) exposes
+    // Count itself - no need to track entries separately just to answer "how many are cached".
+    public int Count => _cache is MemoryCache concrete ? concrete.Count : -1;
 }

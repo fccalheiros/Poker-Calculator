@@ -29,14 +29,21 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 
 builder.Services.AddSingleton<SimulationWorkerPool>();
 builder.Services.AddSingleton<EquityCache>();
+builder.Services.AddSingleton<UsageStats>();
 builder.Services.AddScoped<EquityService>();
 
 var app = builder.Build();
 
+// DI singletons are otherwise constructed lazily, on first use - without this, UsageStats'
+// _startedAt would capture whenever the first request happened to resolve it instead of
+// actual process start, making /api/status's startedAt/uptimeSeconds misleading whenever
+// there's a gap between a restart and the first request.
+app.Services.GetRequiredService<UsageStats>();
+
 // Shared by all three routes below: computes equity and maps EquityService's failure
 // modes to HTTP responses. The /holdem and /omaha routes are pure convenience - same
 // request handling, just with Game pinned by the URL instead of a request field.
-async Task<IResult> HandleEquity(EquityRequest request, EquityService equityService, CancellationToken cancellationToken)
+async Task<IResult> HandleEquity(EquityRequest request, EquityService equityService, UsageStats usage, CancellationToken cancellationToken)
 {
     try
     {
@@ -45,14 +52,17 @@ async Task<IResult> HandleEquity(EquityRequest request, EquityService equityServ
     }
     catch (ServiceBusyException)
     {
+        usage.RecordRejectedBusy();
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
     catch (FormatException ex)
     {
+        usage.RecordValidationError();
         return Results.BadRequest(ex.Message);
     }
     catch (UnsatisfiableRangeException ex)
     {
+        usage.RecordValidationError();
         return Results.BadRequest(ex.Message);
     }
     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -62,16 +72,23 @@ async Task<IResult> HandleEquity(EquityRequest request, EquityService equityServ
     }
 }
 
-app.MapPost("/api/equity", (EquityRequest request, EquityService equityService, CancellationToken cancellationToken) =>
-        HandleEquity(request, equityService, cancellationToken))
+app.MapPost("/api/equity", (EquityRequest request, EquityService equityService, UsageStats usage, CancellationToken cancellationToken) =>
+        HandleEquity(request, equityService, usage, cancellationToken))
     .WithName("ComputeEquity");
 
-app.MapPost("/api/equity/holdem", (GameSpecificEquityRequest request, EquityService equityService, CancellationToken cancellationToken) =>
-        HandleEquity(request.WithGame(GameType.Holdem), equityService, cancellationToken))
+app.MapPost("/api/equity/holdem", (GameSpecificEquityRequest request, EquityService equityService, UsageStats usage, CancellationToken cancellationToken) =>
+        HandleEquity(request.WithGame(GameType.Holdem), equityService, usage, cancellationToken))
     .WithName("ComputeHoldemEquity");
 
-app.MapPost("/api/equity/omaha", (GameSpecificEquityRequest request, EquityService equityService, CancellationToken cancellationToken) =>
-        HandleEquity(request.WithGame(GameType.Omaha), equityService, cancellationToken))
+app.MapPost("/api/equity/omaha", (GameSpecificEquityRequest request, EquityService equityService, UsageStats usage, CancellationToken cancellationToken) =>
+        HandleEquity(request.WithGame(GameType.Omaha), equityService, usage, cancellationToken))
     .WithName("ComputeOmahaEquity");
+
+app.MapGet("/api/status", (EquityCache cache, IOptions<SimulationOptions> options, UsageStats usage) =>
+        Results.Ok(new AppStatusResponse(
+            options.Value,
+            new CacheStatus(cache.Count, options.Value.CacheSizeLimit),
+            usage.Snapshot())))
+    .WithName("GetAppStatus");
 
 app.Run();
