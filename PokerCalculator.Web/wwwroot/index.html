@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Poker Equity Calculator</title>
+  <meta name="description" content="Free Texas Hold'em and Omaha poker equity calculator. Compute win/loss/tie odds against one or more villain ranges using Monte Carlo simulation." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,7 +13,7 @@
       <header class="table-header">
         <h1><span class="suit red">&hearts;</span> Poker Equity Calculator <span class="suit black">&spades;</span></h1>
 
-        <div class="game-toggle" role="radiogroup" aria-label="Jogo">
+        <div class="game-toggle" role="radiogroup" aria-label="Game">
           <input type="radio" id="game-holdem" name="game" value="Holdem" checked>
           <label for="game-holdem">Hold'em</label>
           <input type="radio" id="game-omaha" name="game" value="Omaha">
@@ -23,8 +24,8 @@
       <form id="equity-form" novalidate>
         <div class="field">
           <div class="section-header">
-            <label>Cartas</label>
-            <div class="picker-toggle" id="picker-toggle" role="radiogroup" aria-label="Selecionando cartas para">
+            <label>Cards</label>
+            <div class="picker-toggle" id="picker-toggle" role="radiogroup" aria-label="Selecting cards for">
               <button type="button" class="picker-toggle-btn active" data-target="hero">Hero</button>
               <button type="button" class="picker-toggle-btn" data-target="board">Board</button>
             </div>
@@ -38,7 +39,7 @@
           <span class="error" id="hero-error"></span>
 
           <div class="picker-row">
-            <span class="picker-row-label">Board <span class="hint">(opcional)</span></span>
+            <span class="picker-row-label">Board <span class="hint">(optional)</span></span>
             <div class="preview-row" id="board-preview"></div>
           </div>
           <span class="error" id="board-error"></span>
@@ -46,15 +47,15 @@
 
         <div class="field villains">
           <div class="villains-label-row">
-            <label>Vilões</label>
-            <button type="button" id="add-villain" class="chip-btn">+ vilão</button>
+            <label>Villains</label>
+            <button type="button" id="add-villain" class="chip-btn">+ villain</button>
           </div>
           <div class="villain-tabs" id="villain-tabs"></div>
           <div id="range-editor"></div>
           <span class="error" id="villain-error"></span>
         </div>
 
-        <button type="submit" id="submit-btn" class="primary-btn">Calcular equity</button>
+        <button type="submit" id="submit-btn" class="primary-btn">Calculate equity</button>
       </form>
 
       <section id="result" class="result hidden" aria-live="polite">
@@ -76,17 +77,11 @@
         </div>
         <div class="meta">
           <span id="stat-sims"></span>
-          <span id="stat-cache" class="badge hidden">do cache</span>
+          <span id="stat-cache" class="badge hidden">from cache</span>
         </div>
       </section>
 
       <div id="api-error" class="api-error hidden" role="alert"></div>
-
-      <details class="api-config">
-        <summary>Configuração da API</summary>
-        <label for="api-base">URL base</label>
-        <input type="text" id="api-base" value="" placeholder="deixe em branco para usar este servidor">
-      </details>
     </main>
   </div>
 

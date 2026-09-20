@@ -37,6 +37,14 @@ app.Map("/api/{**path}", async (HttpContext context, IHttpClientFactory httpClie
 });
 
 app.UseDefaultFiles();
-app.UseStaticFiles();
+// Cloudflare's edge caches static extensions (.js/.css) for hours by default when the
+// origin sends no explicit Cache-Control - exactly what happened here: a redeploy updated
+// the files on the VM, but the edge kept serving the old cached copies well past the
+// deploy. no-cache still lets ETag/Last-Modified do cheap 304s, it just forces a
+// revalidation round-trip instead of trusting a multi-hour TTL blindly.
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers["Cache-Control"] = "no-cache"
+});
 
 app.Run();

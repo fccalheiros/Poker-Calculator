@@ -82,8 +82,6 @@ const addVillainBtn = document.getElementById("add-villain");
 const submitBtn = document.getElementById("submit-btn");
 const resultSection = document.getElementById("result");
 const apiErrorBox = document.getElementById("api-error");
-const apiBaseInput = document.getElementById("api-base");
-
 function currentGame() {
   return document.querySelector('input[name="game"]:checked').value;
 }
@@ -104,7 +102,7 @@ function renderCardPreview(container, cards) {
   if (cards.length === 0) {
     const empty = document.createElement("span");
     empty.className = "hint";
-    empty.textContent = "Nenhuma carta selecionada";
+    empty.textContent = "No cards selected";
     container.appendChild(empty);
     return;
   }
@@ -126,7 +124,7 @@ function renderCardGrid(container, selected, otherSelected, maxCount, onToggle) 
       cell.className = "card-cell " + SUITS[s].cls + (isSelected ? " selected" : "") + (isBlocked || isFull ? " blocked" : "");
       cell.disabled = isBlocked || isFull;
       cell.textContent = RANKS[r] + SUITS[s].symbol;
-      if (isBlocked) cell.title = "Carta já usada no outro conjunto (hero/board)";
+      if (isBlocked) cell.title = "Card already used in the other set (hero/board)";
       cell.addEventListener("click", () => onToggle(code));
       grid.appendChild(cell);
     }
@@ -205,7 +203,7 @@ function renderHoldemRangeEditor(villain, container) {
   const header = document.createElement("div");
   header.className = "section-header";
   const title = document.createElement("h2");
-  title.textContent = "Range do Vilão " + (activeVillainIndex + 1);
+  title.textContent = "Villain " + (activeVillainIndex + 1) + " Range";
   const badge = document.createElement("span");
   badge.className = "badge";
   const combos = Array.from(villain.holdemTokens).reduce((sum, t) => sum + comboCount(t), 0);
@@ -216,11 +214,11 @@ function renderHoldemRangeEditor(villain, container) {
 
   const quick = document.createElement("div");
   quick.className = "quick-selects";
-  quick.appendChild(quickSelectButton("Tudo", () => selectAllCells(() => true)));
-  quick.appendChild(quickSelectButton("Qualquer Suited", () => selectAllCells((row, col) => col > row)));
+  quick.appendChild(quickSelectButton("All", () => selectAllCells(() => true)));
+  quick.appendChild(quickSelectButton("Any Suited", () => selectAllCells((row, col) => col > row)));
   quick.appendChild(quickSelectButton("Broadway", () => selectAllCells((row, col) => row < 5 && col < 5)));
-  quick.appendChild(quickSelectButton("Pares", () => selectAllCells((row, col) => row === col)));
-  const clearBtn = quickSelectButton("Limpar", () => {
+  quick.appendChild(quickSelectButton("Pairs", () => selectAllCells((row, col) => row === col)));
+  const clearBtn = quickSelectButton("Clear", () => {
     villain.holdemTokens.clear();
     renderRangeEditor();
   });
@@ -260,16 +258,16 @@ function renderHoldemRangeEditor(villain, container) {
   const legend = document.createElement("div");
   legend.className = "legend";
   legend.innerHTML =
-    '<span class="legend-item"><i class="swatch pair"></i>Par</span>' +
+    '<span class="legend-item"><i class="swatch pair"></i>Pair</span>' +
     '<span class="legend-item"><i class="swatch suited"></i>Suited</span>' +
     '<span class="legend-item"><i class="swatch offsuit"></i>Offsuit</span>' +
-    '<span class="legend-item"><i class="swatch selected"></i>Selecionado</span>';
+    '<span class="legend-item"><i class="swatch selected"></i>Selected</span>';
   box.appendChild(legend);
 
   const percentRow = document.createElement("div");
   percentRow.className = "percent-row";
   const percentLabel = document.createElement("label");
-  percentLabel.textContent = "Top % da faixa (por força de mão) — substitui a seleção atual";
+  percentLabel.textContent = "Top % of range (by hand strength) — replaces current selection";
   const percentControl = document.createElement("div");
   percentControl.className = "percent-control";
   const slider = document.createElement("input");
@@ -295,7 +293,7 @@ function renderHoldemRangeEditor(villain, container) {
 
   const textPreview = document.createElement("p");
   textPreview.className = "range-text";
-  textPreview.textContent = villain.holdemTokens.size > 0 ? sortedHoldemTokens(villain.holdemTokens).join(", ") : "(nenhum token selecionado)";
+  textPreview.textContent = villain.holdemTokens.size > 0 ? sortedHoldemTokens(villain.holdemTokens).join(", ") : "(no tokens selected)";
   box.appendChild(textPreview);
 
   container.appendChild(box);
@@ -308,7 +306,7 @@ function percentForSliderValue(n) {
 }
 
 function formatPercent(p) {
-  return p.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+  return p.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
 }
 
 // Approximates which slider value produced the villain's current selection (used only to
@@ -339,10 +337,10 @@ function renderOmahaRangeEditor(villain, container) {
   const header = document.createElement("div");
   header.className = "section-header";
   const title = document.createElement("h2");
-  title.textContent = "Construtor de Padrão — Vilão " + (activeVillainIndex + 1);
+  title.textContent = "Pattern Builder — Villain " + (activeVillainIndex + 1);
   const badge = document.createElement("span");
   badge.className = "badge";
-  badge.textContent = villain.omahaTokens.length + " padrões";
+  badge.textContent = villain.omahaTokens.length + " patterns";
   header.appendChild(title);
   header.appendChild(badge);
   box.appendChild(header);
@@ -352,7 +350,7 @@ function renderOmahaRangeEditor(villain, container) {
 
   const slotsLabel = document.createElement("span");
   slotsLabel.className = "builder-label";
-  slotsLabel.textContent = "Ranks escolhidos (clique em um rank abaixo para preencher; clique num slot para remover)";
+  slotsLabel.textContent = "Chosen ranks (click a rank below to fill; click a slot to remove)";
   builderBox.appendChild(slotsLabel);
 
   const slotsRow = document.createElement("div");
@@ -364,7 +362,7 @@ function renderOmahaRangeEditor(villain, container) {
     slot.className = "slot " + (rank ? "filled" : "empty");
     slot.textContent = rank || "";
     if (rank) {
-      slot.title = "Remover";
+      slot.title = "Remove";
       slot.addEventListener("click", () => {
         omahaSlots.splice(i, 1);
         renderRangeEditor();
@@ -395,12 +393,12 @@ function renderOmahaRangeEditor(villain, container) {
   qualifierWrap.className = "suit-qualifier";
   const qLabel = document.createElement("span");
   qLabel.className = "builder-label";
-  qLabel.textContent = "Naipe";
+  qLabel.textContent = "Suit";
   qualifierWrap.appendChild(qLabel);
   const qTabs = document.createElement("div");
   qTabs.className = "qualifier-tabs";
   [
-    { value: null, label: "Qualquer" },
+    { value: null, label: "Any" },
     { value: "r", label: "Rainbow (r)" },
     { value: "s", label: "Single (s)" },
     { value: "ds", label: "Double (ds)" },
@@ -423,7 +421,7 @@ function renderOmahaRangeEditor(villain, container) {
   const addBtn = document.createElement("button");
   addBtn.type = "button";
   addBtn.className = "chip-btn";
-  addBtn.textContent = "Adicionar ao Range";
+  addBtn.textContent = "Add to Range";
   addBtn.disabled = omahaSlots.length !== 4;
   addBtn.addEventListener("click", () => {
     if (omahaSlots.length !== 4) return;
@@ -445,7 +443,7 @@ function renderOmahaRangeEditor(villain, container) {
   const listHeader = document.createElement("div");
   listHeader.className = "section-header";
   const listTitle = document.createElement("h2");
-  listTitle.textContent = "Padrões no Range";
+  listTitle.textContent = "Patterns in Range";
   listHeader.appendChild(listTitle);
   box.appendChild(listHeader);
 
@@ -454,7 +452,7 @@ function renderOmahaRangeEditor(villain, container) {
   if (villain.omahaTokens.length === 0) {
     const empty = document.createElement("span");
     empty.className = "hint";
-    empty.textContent = "Nenhum padrão adicionado ainda";
+    empty.textContent = "No patterns added yet";
     tokenList.appendChild(empty);
   }
   villain.omahaTokens.forEach((t, i) => {
@@ -465,7 +463,7 @@ function renderOmahaRangeEditor(villain, container) {
     chip.appendChild(label);
     const tag = document.createElement("span");
     tag.className = "qtag" + (t.qualifier ? "" : " none");
-    tag.textContent = t.qualifier || "qualquer";
+    tag.textContent = t.qualifier || "any";
     chip.appendChild(tag);
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
@@ -485,7 +483,7 @@ function renderOmahaRangeEditor(villain, container) {
   textPreview.textContent =
     villain.omahaTokens.length > 0
       ? villain.omahaTokens.map((t) => t.ranks.join("") + (t.qualifier || "")).join(", ")
-      : "(nenhum padrão adicionado)";
+      : "(no patterns added)";
   box.appendChild(textPreview);
 
   container.appendChild(box);
@@ -499,7 +497,7 @@ function renderVillainTabs() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "villain-tab" + (i === activeVillainIndex ? " active" : "");
-    btn.textContent = "Vilão " + (i + 1);
+    btn.textContent = "Villain " + (i + 1);
     btn.addEventListener("click", () => {
       activeVillainIndex = i;
       renderRangeEditor();
@@ -528,7 +526,7 @@ function renderRangeEditor() {
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.className = "ghost-link";
-  removeBtn.textContent = "Remover Vilão " + (activeVillainIndex + 1);
+  removeBtn.textContent = "Remove Villain " + (activeVillainIndex + 1);
   removeBtn.addEventListener("click", removeActiveVillain);
   footer.appendChild(removeBtn);
   rangeEditorEl.appendChild(footer);
@@ -599,12 +597,12 @@ function showApiError(message) {
 
 function validateHeroCards(cards, game) {
   const expected = HERO_CARD_COUNT[game];
-  if (cards.length !== expected) return `Hero precisa ter exatamente ${expected} cartas para ${game}. Selecionadas: ${cards.length}.`;
+  if (cards.length !== expected) return `Hero needs exactly ${expected} cards for ${game}. Selected: ${cards.length}.`;
   return null;
 }
 
 function validateBoardCards(cards) {
-  if (![0, 3, 4, 5].includes(cards.length)) return `Board precisa ter 0, 3, 4 ou 5 cartas. Selecionadas: ${cards.length}.`;
+  if (![0, 3, 4, 5].includes(cards.length)) return `Board needs 0, 3, 4, or 5 cards. Selected: ${cards.length}.`;
   return null;
 }
 
@@ -612,7 +610,7 @@ function validateBoardCards(cards) {
 // but this is checked again here rather than trusting that UI state never drifts.
 function validateNoOverlap(hero, board) {
   const overlap = hero.filter((c) => board.includes(c));
-  if (overlap.length > 0) return `Hero e board não podem compartilhar cartas: ${overlap.join(", ")}.`;
+  if (overlap.length > 0) return `Hero and board cannot share cards: ${overlap.join(", ")}.`;
   return null;
 }
 
@@ -663,7 +661,7 @@ function renderResult(data) {
   document.getElementById("stat-loss").textContent = data.lossPercent.toFixed(4) + "%";
   document.getElementById("stat-tie").textContent = data.tiePercent.toFixed(4) + "%";
   document.getElementById("stat-equity").textContent = data.equity.toFixed(4) + "%";
-  document.getElementById("stat-sims").textContent = `${data.simulationsRun.toLocaleString("pt-BR")} simulações`;
+  document.getElementById("stat-sims").textContent = `${data.simulationsRun.toLocaleString("en-US")} simulations`;
   document.getElementById("stat-cache").classList.toggle("hidden", !data.fromCache);
   resultSection.classList.remove("hidden");
 }
@@ -677,7 +675,7 @@ async function extractErrorMessage(response) {
     const parsed = JSON.parse(text);
     return typeof parsed === "string" ? parsed : text;
   } catch {
-    return text || `Erro ${response.status}`;
+    return text || `Error ${response.status}`;
   }
 }
 
@@ -690,27 +688,27 @@ form.addEventListener("submit", async (event) => {
   resultSection.classList.add("hidden");
   apiErrorBox.classList.add("hidden");
   submitBtn.disabled = true;
-  submitBtn.textContent = "Calculando...";
+  submitBtn.textContent = "Calculating...";
 
   try {
-    const response = await fetch(`${apiBaseInput.value.replace(/\/$/, "")}/api/equity`, {
+    const response = await fetch("api/equity", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     if (response.status === 503) {
-      showApiError("Servidor ocupado no momento - tente novamente em instantes.");
+      showApiError("Server busy right now - please try again shortly.");
     } else if (!response.ok) {
       showApiError(await extractErrorMessage(response));
     } else {
       renderResult(await response.json());
     }
   } catch {
-    showApiError(`Não foi possível conectar em ${apiBaseInput.value}. A API está rodando?`);
+    showApiError("Could not connect to the API. Is it running?");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Calcular equity";
+    submitBtn.textContent = "Calculate equity";
   }
 });
 

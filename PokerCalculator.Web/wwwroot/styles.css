@@ -88,6 +88,8 @@ body {
 }
 
 .game-toggle label {
+  margin-bottom: 0; /* overrides the global `label` rule's 6px, which left a gap at the
+                       bottom of the pill that the checked label's background didn't fill */
   padding: 12px 33px;
   font-size: 1.15rem;
   cursor: pointer;
@@ -289,16 +291,6 @@ input[type="text"]:focus {
   padding: 12px 14px;
   border-radius: 8px;
   font-size: 0.9rem;
-}
-
-.api-config {
-  margin-top: 24px;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.api-config input[type="text"] {
-  margin-top: 6px;
 }
 
 /* --- Card / range pickers --- */
