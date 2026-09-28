@@ -28,6 +28,9 @@ namespace PokerCalculator.Api
 
             public const string EmptyVillainRangeInMultiway =
                 "All villain ranges must be non-empty when more than one villain is specified.";
+
+            public static string RangeProducedNoCombos(GameType game) =>
+                $"Villain range is valid {game} notation but matches no possible hand combination.";
         }
     }
 }

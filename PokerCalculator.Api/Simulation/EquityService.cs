@@ -178,8 +178,13 @@ public class EquityService
         return (hero, board, boardCardsLeft, singleRange, multiRange, multiRangeSize);
     }
 
-    private static ulong[] ParseVillainRange(List<string> tokens, GameType game) =>
-        game == GameType.Omaha ? RangeParser.ParseOmahaRange(tokens) : RangeParser.ParseHoldemRange(tokens);
+    private static ulong[] ParseVillainRange(List<string> tokens, GameType game)
+    {
+        ulong[] combos = game == GameType.Omaha ? RangeParser.ParseOmahaRange(tokens) : RangeParser.ParseHoldemRange(tokens);
+        if (combos.Length == 0)
+            throw new FormatException(Messages.Validation.RangeProducedNoCombos(game));
+        return combos;
+    }
 
     private static ulong[,] BuildMultiRange(List<List<string>> villainRanges, GameType game, out int[] sizes)
     {
