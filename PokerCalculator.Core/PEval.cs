@@ -47,7 +47,7 @@ namespace PokerCalculator
 
         // This is the main procedure that identifies a player's hand
 
-        public static int GeneralProcessCardSet(ulong cardSet)
+        public static int GeneralProcessCardSet(ulong cardSet, int cardSetSize)
         {
             // Uses bits 29, 28, and 27 to store the hand strength.
             // Uses 26 bits as a tie breaker:
@@ -62,11 +62,13 @@ namespace PokerCalculator
             int cc, flushcc;
             int st, fl, stfl;
 
+            ulong splitmask = 0b1111111111111;
+
             // Split the card set by suit.
-            C = (int)((cardSet) & 0b1111111111111);
-            H = (int)((cardSet >> 13) & 0b1111111111111);
-            S = (int)((cardSet >> 26) & 0b1111111111111);
-            D = (int)((cardSet >> 39) & 0b1111111111111);
+            C = (int)((cardSet) & splitmask);
+            H = (int)((cardSet >> 13) & splitmask);
+            S = (int)((cardSet >> 26) & splitmask);
+            D = (int)((cardSet >> 39) & splitmask);
 
             // Count the number of different ranks.
             CHSD_OR = C | H | S | D;
@@ -76,7 +78,7 @@ namespace PokerCalculator
             if (cc >= 5)
             {
                 st = straight(CHSD_OR);
-                fl = flush2(C, H, S, D, out flushcc);
+                fl = flush2(C, H, S, D, cardSetSize, out flushcc);
 
                 if ((st & fl) > 0)
                 {
@@ -113,10 +115,6 @@ namespace PokerCalculator
                 // Trips or two pair.
                 if (cc == 5)
                 {
-                    // Two pair (~82%) is far more common than trips (~18%) among 7-card hands
-                    // that land in this branch, and cheaper to compute (4 XORs vs 7 bitwise
-                    // ops) - so it's checked first. Given cc == 5, these are the only two
-                    // possible shapes (3+1+1+1+1 or 2+2+1+1+1), so no pair > 0 check is needed.
                     int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
                     if (pair > 0) return CONSTANTS.TWOPAIR | pair << 13 | cleanLSB2(pair ^ CHSD_OR);
                     //C & H & S | C & H & D | C & S & D | H & S & D;
@@ -153,12 +151,12 @@ namespace PokerCalculator
                 int trips = (C & H & (S | D)) | (S & D & (C | H));
                 int pair = (C ^ H ^ S ^ D) ^ CHSD_OR;
 
-                if (pair == 0)
+                if (pair != 0)
                 {
-                    int highcard = cleanLSB(trips);
-                    return CONSTANTS.FULLHOUSE | highcard << 13 | highcard ^ trips;
+                    return CONSTANTS.FULLHOUSE | trips << 13 | cleanLSB(pair);
                 }
-                return CONSTANTS.FULLHOUSE | trips << 13 | cleanLSB(pair);
+                int highcard = cleanLSB(trips);
+                return CONSTANTS.FULLHOUSE | highcard << 13 | highcard ^ trips;
             }
 
             // four + "trips"
@@ -255,9 +253,29 @@ namespace PokerCalculator
             return CONSTANTS.MultiplyDeBruijnBitPosition[((UInt32)((subset & -subset) * 0x077CB531U)) >> 27];
         }
 
+        // Measured: a lookup table here showed no gain over ComputeStraight directly. Kept
+        // unused rather than deleted.
+        private static readonly int[] StraightTable = BuildStraightTable();
+
+        private static int[] BuildStraightTable()
+        {
+            var table = new int[1 << 13];
+            for (int subset = 0; subset < table.Length; subset++)
+            {
+                table[subset] = ComputeStraight(subset);
+            }
+            return table;
+        }
+
         // Check for a straight on a set of cards
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int straight(int subset)
+        {
+            return ComputeStraight(subset);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int ComputeStraight(int subset)
         {
             // Replicate the ace at the end to find lower sequences.
             subset = ((subset & 0b1000000000000) >> 12) | (subset << 1);
@@ -294,25 +312,26 @@ namespace PokerCalculator
         }
 
         // Works better than the previous method when testing all hands.
-        public static int flush2(int C, int H, int S, int D, out int bitcc)
+        public static int flush2(int C, int H, int S, int D, int cardSetSize, out int bitcc)
         {
             bitcc = bitCount(C);
 
             if (bitcc >= 5) return C;
-            if (bitcc > 2) return 0;
+            if (cardSetSize - bitcc < 5) return 0;
 
             int acum = bitcc;
 
             bitcc = bitCount(H);
             if (bitcc >= 5) return H;
             acum += bitcc;
-            if (acum > 2) return 0;
+            if (cardSetSize - acum < 5) return 0;
 
             bitcc = bitCount(S);
             if (bitcc >= 5) return S;
-            if (acum + bitcc > 2) return 0;
+            acum += bitcc;
+            if (cardSetSize - acum < 5) return 0;
 
-            bitcc = 7 - acum - bitcc;
+            bitcc = cardSetSize - acum;
             return D;
 
         }

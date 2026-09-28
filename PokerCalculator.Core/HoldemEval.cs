@@ -9,19 +9,20 @@ namespace PokerCalculator
 {
     public class HoldemEval : PEval
     {
+        public const int CardSetSize = 7;
 
         // Evaluate a complete card set.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ProcessCardSet(ulong cardSet)
         {
-            return PEval.GeneralProcessCardSet(cardSet);
+            return PEval.GeneralProcessCardSet(cardSet, CardSetSize);
         }
 
         // Evaluate pocket cards with the current board.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ProcessCardSet(ulong pocketpair, ulong board)
         {
-            return PEval.GeneralProcessCardSet(pocketpair | board);
+            return PEval.GeneralProcessCardSet(pocketpair | board, CardSetSize);
         }
 
 
