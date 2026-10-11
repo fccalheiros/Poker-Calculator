@@ -105,6 +105,21 @@ body {
   color: var(--card-bg);
 }
 
+.clear-selection-btn {
+  display: block;
+  margin: 8px auto 0;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.clear-selection-btn:hover {
+  text-decoration: underline;
+}
+
 .field {
   margin-bottom: 18px;
 }

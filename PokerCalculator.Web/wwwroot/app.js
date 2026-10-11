@@ -58,13 +58,39 @@ function createVillain() {
   };
 }
 
-let heroCards = []; // card codes like "Ah", "Ks", in selection order
-let boardCards = [];
-let villains = [createVillain()];
-let activeVillainIndex = 0;
-let omahaSlots = []; // ranks currently being built for the active villain's Omaha token
-let omahaQualifier = null;
+// Hero/board/villain selections are kept separately per game, so switching the
+// Hold'em/Omaha toggle doesn't discard what's been picked for the other one.
+function createEmptyGameSelection() {
+  return {
+    heroCards: [], // card codes like "Ah", "Ks", in selection order
+    boardCards: [],
+    villains: [createVillain()],
+    activeVillainIndex: 0,
+    omahaSlots: [], // ranks currently being built for the active villain's Omaha token
+    omahaQualifier: null,
+  };
+}
+
+const gameSelections = { Holdem: createEmptyGameSelection(), Omaha: createEmptyGameSelection() };
+let activeGame = "Holdem"; // matches the default-checked radio
+
+let heroCards;
+let boardCards;
+let villains;
+let activeVillainIndex;
+let omahaSlots;
+let omahaQualifier;
 let cardPickerTarget = "hero"; // "hero" | "board" - which set the single shared grid currently edits
+
+function loadGameSelection(game) {
+  ({ heroCards, boardCards, villains, activeVillainIndex, omahaSlots, omahaQualifier } = gameSelections[game]);
+}
+
+function saveGameSelection(game) {
+  gameSelections[game] = { heroCards, boardCards, villains, activeVillainIndex, omahaSlots, omahaQualifier };
+}
+
+loadGameSelection(activeGame);
 
 // --- DOM references ---
 
@@ -79,6 +105,7 @@ const villainTabsEl = document.getElementById("villain-tabs");
 const rangeEditorEl = document.getElementById("range-editor");
 const villainError = document.getElementById("villain-error");
 const addVillainBtn = document.getElementById("add-villain");
+const clearSelectionBtn = document.getElementById("clear-selection");
 const submitBtn = document.getElementById("submit-btn");
 const resultSection = document.getElementById("result");
 const apiErrorBox = document.getElementById("api-error");
@@ -557,16 +584,7 @@ function updateAddVillainState() {
   addVillainBtn.disabled = villains.length >= MAX_VILLAINS[game];
 }
 
-function onGameChange() {
-  // A game switch invalidates hero card count (2 vs 4) and range-token shape (Hold'em vs
-  // Omaha tokens are not interchangeable), so start the hand over rather than carry over
-  // selections that would no longer mean the same thing.
-  heroCards = [];
-  boardCards = [];
-  villains = [createVillain()];
-  activeVillainIndex = 0;
-  omahaSlots = [];
-  omahaQualifier = null;
+function refreshSelectionViews() {
   cardPickerTarget = "hero";
   clearErrors();
   renderPickerToggle();
@@ -577,7 +595,21 @@ function onGameChange() {
   renderRangeEditor();
 }
 
+function onGameChange() {
+  saveGameSelection(activeGame);
+  activeGame = currentGame();
+  loadGameSelection(activeGame);
+  refreshSelectionViews();
+}
+
+function clearCurrentSelection() {
+  gameSelections[activeGame] = createEmptyGameSelection();
+  loadGameSelection(activeGame);
+  refreshSelectionViews();
+}
+
 document.querySelectorAll('input[name="game"]').forEach((el) => el.addEventListener("change", onGameChange));
+clearSelectionBtn.addEventListener("click", clearCurrentSelection);
 addVillainBtn.addEventListener("click", addVillain);
 
 function clearErrors() {
