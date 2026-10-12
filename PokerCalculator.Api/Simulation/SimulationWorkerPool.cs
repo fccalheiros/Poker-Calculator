@@ -1,7 +1,8 @@
 // A fixed pool of background threads consuming a work queue. Threads are created once at
 // startup (avoiding per-request thread spin-up) and run until the pool is disposed. Each
-// thread owns a single, reused PokerMonteCarloServer instance instead of a new one being
-// allocated per job.
+// thread owns a single, reused PokerMonteCarloServer and PokerExactEnumerator instance
+// instead of new ones being allocated per job - a job uses whichever one its path needs
+// and ignores the other.
 //
 // Admission control is done with an atomic reservation counter (_reserved), not with the
 // queue's own capacity: EquityService reserves all of a request's sub-tasks in one atomic
@@ -14,9 +15,10 @@ using PokerCalculator.Api.Options;
 
 namespace PokerCalculator.Api.Simulation;
 
-// A unit of work applied to the calling worker's own PokerMonteCarloServer instance:
-// it configures the server for the job at hand and runs the matching Simulate* method.
-public delegate void SimulationJob(PokerMonteCarloServer server);
+// A unit of work applied to the calling worker's own PokerMonteCarloServer/
+// PokerExactEnumerator instances: it configures whichever one the job needs and runs the
+// matching Simulate*/Enumerate* method.
+public delegate void SimulationJob(PokerMonteCarloServer mcServer, PokerExactEnumerator enumerator);
 
 public class SimulationWorkerPool : IDisposable
 {
@@ -67,12 +69,13 @@ public class SimulationWorkerPool : IDisposable
     private void WorkerLoop()
     {
         var server = new PokerMonteCarloServer();
+        var enumerator = new PokerExactEnumerator();
 
         foreach (var job in _queue.GetConsumingEnumerable())
         {
             try
             {
-                job(server);
+                job(server, enumerator);
             }
             catch
             {

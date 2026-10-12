@@ -35,35 +35,56 @@ public class EquityService
         ValidateVillainRangeLimits(villainRanges, request.Game);
         string cacheKey = EquityCacheKeyBuilder.Build(request.Hero, request.Board, villainRanges, request.Game);
 
-        if (_cache.TryGet(cacheKey, out var cached))
+        // AllowExactEnumeration=false is a deliberate "compare both paths" testing request
+        // (see EquityRequest) - it bypasses the cache entirely so it always sees a fresh
+        // Monte Carlo computation instead of a result the other path may have cached.
+        bool useCache = request.AllowExactEnumeration;
+        if (useCache)
         {
-            _usage.RecordCacheHit();
-            return ToResponse(cached.Result, cached.Simulations, fromCache: true);
+            if (_cache.TryGet(cacheKey, out var cached))
+            {
+                _usage.RecordCacheHit();
+                return ToResponse(cached.Result, cached.Simulations, fromCache: true, cached.Exact);
+            }
+            _usage.RecordCacheMiss();
         }
-        _usage.RecordCacheMiss();
 
         (ulong hero, ulong board, int boardCardsLeft, ulong[]? singleRange, ulong[,]? multiRange, int[]? multiRangeSize) =
             ParseInput(request, villainRanges);
 
         long[] simsPerTask = PlanSimulations(request.Game);
+        long plannedSimsTotal = simsPerTask.Sum();
+
+        bool useExact = request.AllowExactEnumeration &&
+            DecideExact(hero, boardCardsLeft, request.Game, villainRanges.Count, singleRange, multiRangeSize, plannedSimsTotal);
 
         // Wall-clock around the whole (parallel) batch, not summed per sub-task - the
         // sub-tasks run concurrently on the worker pool, so summing their individual
         // durations would inflate the number well past what the caller actually waited.
         var stopwatch = Stopwatch.StartNew();
-        SimulationResult total = await RunBatch(
-            hero, board, boardCardsLeft, villainRanges.Count, singleRange, multiRange, multiRangeSize, request.Game, simsPerTask, cancellationToken);
+        SimulationResult total;
+        long simulationsRun;
+        if (useExact)
+        {
+            total = await RunExactBatch(
+                hero, board, boardCardsLeft, villainRanges.Count, singleRange, multiRange, multiRangeSize, request.Game, cancellationToken);
+            simulationsRun = (long)(total.Win + total.Loss + total.Tie);
+        }
+        else
+        {
+            total = await RunBatch(
+                hero, board, boardCardsLeft, villainRanges.Count, singleRange, multiRange, multiRangeSize, request.Game, simsPerTask, cancellationToken);
+            simulationsRun = plannedSimsTotal;
+        }
         stopwatch.Stop();
         _usage.RecordComputeTime(request.Game, stopwatch.ElapsedTicks);
 
-        long simulationsRun = simsPerTask.Sum();
-
-        if (simulationsRun >= _options.MinSimulationsToCache)
+        if (useCache && simulationsRun >= _options.MinSimulationsToCache)
         {
-            _cache.Set(cacheKey, new CachedEquityResult(total, simulationsRun));
+            _cache.Set(cacheKey, new CachedEquityResult(total, simulationsRun, useExact));
         }
 
-        return ToResponse(total, simulationsRun, fromCache: false);
+        return ToResponse(total, simulationsRun, fromCache: false, useExact);
     }
 
     // Rejects malformed Hero/Board before anything downstream (cache key building, then
@@ -244,6 +265,175 @@ public class EquityService
         return result;
     }
 
+    // No worker in an exact-enumeration batch is handed fewer than this many hand
+    // evaluations to do, unless the whole batch fits in one worker to begin with - splitting
+    // a small batch into many tiny slices just adds dispatch overhead for no parallelism
+    // benefit.
+    private const long MinCalculationsPerWorker = 20_000;
+
+    // Decides whether this request should run via exact enumeration instead of Monte Carlo.
+    // Two shapes are always exact regardless of cost - both restricted to a single villain,
+    // because beyond that the villain cross-product can blow up with zero disjuntor pruning
+    // if hero happens to be unbeatable (see design notes - this was caught before
+    // implementing it as an unconditional board-complete rule):
+    //   - board already complete (boardCardsLeft == 0): zero-variance and, with one villain,
+    //     at most ~990 (Hold'em) or ~123k (Omaha) evaluations - always far cheaper than any
+    //     Monte Carlo batch.
+    //   - Hold'em, river missing (boardCardsLeft == 1): at most 46 board combos x ~990
+    //     villain combos - still tiny.
+    // Every other shape (more than one villain, or fewer board cards known) is decided by
+    // comparing an exact-cost estimate against what Monte Carlo would spend on this same
+    // request, with an 80% margin: exact is used only when it's estimated to cost no more
+    // than 80% of the Monte Carlo alternative.
+    private bool DecideExact(
+        ulong hero, int boardCardsLeft, GameType game, int villainCount,
+        ulong[]? singleRange, int[]? multiRangeSize, long plannedSimsTotal)
+    {
+        if (villainCount == 1 && (boardCardsLeft == 0 || (game == GameType.Holdem && boardCardsLeft == 1)))
+            return true;
+
+        int heroCardCount = PEval.bitCount(hero);
+        long boardCombosCount = BinomialCoefficient(47 - heroCardCount + boardCardsLeft, boardCardsLeft);
+
+        // Monte Carlo's own per-request cost in the same unit (one hand evaluation): each
+        // simulation evaluates every villain once (hero's own evaluation is comparatively
+        // negligible on both sides of this comparison, so it's left out of both).
+        long budget = (long)(0.8 * plannedSimsTotal * villainCount);
+
+        long running = boardCombosCount;
+        if (running > budget) return false;
+
+        if (multiRangeSize is not null)
+        {
+            // BuildMultiRange requires every villain to have an explicit range once there's
+            // more than one villain, so multiRangeSize always holds real combo counts here -
+            // never the "unknown hand" ceiling below.
+            foreach (int size in multiRangeSize)
+            {
+                running *= size;
+                if (running > budget) return false;
+            }
+        }
+        else if (singleRange is not null)
+        {
+            running *= singleRange.Length;
+            if (running > budget) return false;
+        }
+        else
+        {
+            // Single villain, no range given: the real max is the "any hand" ceiling itself
+            // - a specified range can never exceed it, since it's always a subset of it.
+            long ceiling = BinomialCoefficient(47 - heroCardCount, heroCardCount);
+            running *= ceiling;
+            if (running > budget) return false;
+        }
+
+        return true;
+    }
+
+    // Standard iterative nCk - result stays integral at every step, so this never needs
+    // intermediate fractional/rounded values. Only ever called with small n/k here (board
+    // sizes and hand sizes), so no overflow risk.
+    private static long BinomialCoefficient(int n, int k)
+    {
+        if (k < 0 || k > n) return 0;
+        long result = 1;
+        for (int i = 0; i < k; i++)
+            result = result * (n - i) / (i + 1);
+        return result;
+    }
+
+    // The real (not margin-adjusted) total evaluation count DecideExact's chosen path will
+    // do - used to size the partitioning below, once exact has already been decided on.
+    // Safe from overflow: this is only called once DecideExact has already established the
+    // true value is small (either one of the two fixed tiny shapes, or a value that passed
+    // the budget check above).
+    private static long EstimateExactWork(ulong hero, int boardCardsLeft, ulong[]? singleRange, int[]? multiRangeSize)
+    {
+        int heroCardCount = PEval.bitCount(hero);
+        long boardCombosCount = BinomialCoefficient(47 - heroCardCount + boardCardsLeft, boardCardsLeft);
+
+        long villainSpace = 1;
+        if (multiRangeSize is not null)
+        {
+            foreach (int size in multiRangeSize) villainSpace *= size;
+        }
+        else if (singleRange is not null)
+        {
+            villainSpace = singleRange.Length;
+        }
+        else
+        {
+            villainSpace = BinomialCoefficient(47 - heroCardCount, heroCardCount);
+        }
+
+        return boardCombosCount * villainSpace;
+    }
+
+    // Enumerates every remaining board completion exactly, splitting the (materialized)
+    // board-combo list across worker-pool jobs - the enumeration counterpart to RunBatch.
+    // Partitioning respects MinCalculationsPerWorker (unless the whole batch is one slice to
+    // begin with) on top of the same load-based parallelism target Monte Carlo uses.
+    private async Task<SimulationResult> RunExactBatch(
+        ulong hero, ulong board, int boardCardsLeft, int villainCount,
+        ulong[]? singleRange, ulong[,]? multiRange, int[]? multiRangeSize,
+        GameType game, CancellationToken cancellationToken)
+    {
+        ulong[] allBoardCombos = PEval.EnumerateCardCombinations(hero | board, boardCardsLeft).ToArray();
+
+        long totalWork = EstimateExactWork(hero, boardCardsLeft, singleRange, multiRangeSize);
+        int loadDivisor = ComputeLoadDivisor(_pool.PendingCount, _options.MaxQueueSize, _options.MaxLoadDivisor);
+        int desiredParts = Math.Max(1, _options.Parallelism / loadDivisor);
+        int maxPartsByFloor = (int)Math.Max(1, totalWork / MinCalculationsPerWorker);
+        int parts = Math.Max(1, Math.Min(desiredParts, maxPartsByFloor));
+
+        List<ulong[]> slices = PokerExactEnumerator.PartitionBoardCombos(allBoardCombos, parts);
+
+        if (!_pool.TryReserve(slices.Count))
+            throw new ServiceBusyException();
+
+        var tasks = new List<Task<SimulationResult>>(slices.Count);
+
+        foreach (var slice in slices)
+        {
+            var tcs = new TaskCompletionSource<SimulationResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+            tasks.Add(tcs.Task);
+
+            void Callback(SimulationResult result) => tcs.TrySetResult(result);
+
+            void Job(PokerMonteCarloServer _, PokerExactEnumerator enumerator)
+            {
+                try
+                {
+                    if (multiRange is not null)
+                    {
+                        enumerator.Configure(hero, board, slice, multiRange, multiRangeSize!, villainCount, Callback, cancellationToken, game);
+                        enumerator.EnumerateRangeN();
+                    }
+                    else if (singleRange is not null)
+                    {
+                        enumerator.Configure(hero, board, slice, singleRange, singleRange.Length, Callback, cancellationToken, game);
+                        enumerator.EnumerateRange();
+                    }
+                    else
+                    {
+                        enumerator.Configure(hero, board, slice, Callback, cancellationToken, game);
+                        enumerator.Enumerate();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    tcs.TrySetException(ex);
+                }
+            }
+
+            _pool.Enqueue(Job);
+        }
+
+        var results = await Task.WhenAll(tasks).WaitAsync(cancellationToken);
+        return results.Aggregate(SimulationResult.Empty, (acc, r) => acc + r);
+    }
+
     // Reserves capacity on the worker pool for the whole batch in one atomic step, enqueues
     // every sub-task, and joins their results. Either the whole batch fits, or the request
     // is rejected outright - no partially-enqueued batches.
@@ -264,7 +454,7 @@ public class EquityService
 
             void Callback(SimulationResult result) => tcs.TrySetResult(result);
 
-            void Job(PokerMonteCarloServer server)
+            void Job(PokerMonteCarloServer server, PokerExactEnumerator _)
             {
                 try
                 {
@@ -303,11 +493,11 @@ public class EquityService
 
     private const int PercentDecimals = 4;
 
-    private static EquityResponse ToResponse(SimulationResult result, long simulations, bool fromCache)
+    private static EquityResponse ToResponse(SimulationResult result, long simulations, bool fromCache, bool exact)
     {
         double total = result.Win + result.Loss + result.Tie;
         if (total == 0)
-            return new EquityResponse(0, 0, 0, 0, simulations, fromCache);
+            return new EquityResponse(0, 0, 0, 0, simulations, fromCache, exact);
 
         // Loss/tie are rounded first; hero's win percentage absorbs whatever rounding
         // slack that leaves behind, so the three always sum to exactly 100 instead of
@@ -318,6 +508,6 @@ public class EquityService
 
         double equity = Math.Round((result.Win + result.TieEquity) / total * 100, PercentDecimals);
 
-        return new EquityResponse(winPercent, lossPercent, tiePercent, equity, simulations, fromCache);
+        return new EquityResponse(winPercent, lossPercent, tiePercent, equity, simulations, fromCache, exact);
     }
 }

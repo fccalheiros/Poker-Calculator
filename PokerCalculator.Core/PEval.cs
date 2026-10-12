@@ -1,6 +1,7 @@
 ﻿// Core bitmask card-set representation and the fast hand evaluator (GeneralProcessCardSet)
 // that HoldemEval and OmahaEval build on, plus card/string conversion helpers.
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -738,6 +739,31 @@ namespace PokerCalculator
                 j++;
             }
 
+        }
+
+        // Enumerates every k-combination of cards from the 52-card deck that doesn't
+        // overlap forbiddenCards, each returned as a bitmask. Used by PokerExactEnumerator
+        // to walk the remaining board (or an unknown villain's hand) exhaustively instead
+        // of sampling it - only called where that space is small by construction, so the
+        // full result list is always safe to materialize. k = 0 returns a single all-zero
+        // combination (nothing left to complete).
+        public static List<ulong> EnumerateCardCombinations(ulong forbiddenCards, int k)
+        {
+            var available = new List<int>();
+            for (int c = 0; c < CONSTANTS.CARDS_TOTAL; c++)
+                if ((forbiddenCards & (CONSTANTS.ONE << c)) == 0)
+                    available.Add(c);
+
+            var results = new List<ulong>();
+            GenerateCombinations(available, k, 0, 0, results);
+            return results;
+        }
+
+        private static void GenerateCombinations(List<int> available, int k, int startIdx, ulong current, List<ulong> results)
+        {
+            if (k == 0) { results.Add(current); return; }
+            for (int i = startIdx; i <= available.Count - k; i++)
+                GenerateCombinations(available, k - 1, i + 1, current | (CONSTANTS.ONE << available[i]), results);
         }
 
     }

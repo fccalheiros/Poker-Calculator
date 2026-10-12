@@ -5,7 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace PokerCalculator.Api.Simulation;
 
-public record CachedEquityResult(SimulationResult Result, long Simulations);
+public record CachedEquityResult(SimulationResult Result, long Simulations, bool Exact);
 
 public class EquityCache
 {

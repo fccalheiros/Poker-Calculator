@@ -7,4 +7,8 @@ namespace PokerCalculator.Api.Contracts;
 // An empty list for a villain means "unknown hand" (uniform random). Omit entirely for
 // a single unknown villain. Game defaults to Hold'em so existing callers of POST
 // /api/equity keep working unchanged.
-public record EquityRequest(string Hero, string Board, List<List<string>>? VillainRanges, GameType Game = GameType.Holdem);
+// AllowExactEnumeration: true (default) lets EquityService pick exact enumeration over
+// Monte Carlo when it decides that's cheaper/warranted. Set to false to force Monte Carlo
+// regardless - used to compare both paths on the same input (requests with it set to
+// false bypass the cache, so the comparison always sees a fresh computation).
+public record EquityRequest(string Hero, string Board, List<List<string>>? VillainRanges, GameType Game = GameType.Holdem, bool AllowExactEnumeration = true);

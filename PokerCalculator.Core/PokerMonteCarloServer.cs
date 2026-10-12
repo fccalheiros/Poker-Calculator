@@ -110,8 +110,7 @@ namespace PokerCalculator
         // The method that will be called when the thread is started.
         public void Simulate()
         {
-            Thread.Sleep(1);
-            Random R = new Random(DateTime.Now.Millisecond);
+            Random R = Random.Shared;
             ulong[] results = new ulong[(int)MatchupResult.Count];
             Array.Clear(results, 0, results.Length);
 
@@ -145,8 +144,7 @@ namespace PokerCalculator
             int heroResult;
             int villainResult;
 
-            Thread.Sleep(1);
-            Random R = new Random(DateTime.Now.Millisecond);
+            Random R = Random.Shared;
 
             win = 0; tie = 0; lost = 0;
             tieEquity = 0;
@@ -199,10 +197,9 @@ namespace PokerCalculator
             int[] villainResult;
 
 
-            Thread.Sleep(1);
             villainResult = new int[nVillains];
             villainhand = new ulong[nVillains];
-            Random R = new Random(DateTime.Now.Millisecond);
+            Random R = Random.Shared;
 
             win = 0; tie = 0; lost = 0;
             tieEquity = 0;
@@ -239,6 +236,16 @@ namespace PokerCalculator
                     {
                         villainResult[v] = HoldemEval.ProcessCardSet(villainhand[v], board);
                     }
+
+                    // A villain that already beats hero settles the trial - the rest of the
+                    // field was already dealt validly, so skipping their evaluation can't
+                    // turn this back into a win or tie.
+                    if (villainResult[v] > heroResult)
+                    {
+                        lost++;
+                        goto NextSimulation;
+                    }
+
                     if (villainResult[v] > bestvillainResult) bestvillainResult = villainResult[v];
                 }
 
@@ -261,6 +268,8 @@ namespace PokerCalculator
                     }
                     tieEquity += (float)(1 / ((float)nTies + 1));
                 }
+
+                NextSimulation: ;
             }
 
             cb?.Invoke(new SimulationResult(win, lost, tie, tieEquity));

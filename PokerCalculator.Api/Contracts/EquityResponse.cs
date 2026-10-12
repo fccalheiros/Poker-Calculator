@@ -6,4 +6,5 @@ public record EquityResponse(
     double TiePercent,
     double Equity,
     long SimulationsRun,
-    bool FromCache);
+    bool FromCache,
+    bool Exact);
