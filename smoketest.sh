@@ -124,9 +124,13 @@ build_villain_ranges() {
 
 # Reseed per-invocation: background subshells forked in quick succession would
 # otherwise inherit the same $RANDOM state from the parent and draw identical
-# "random" hands.
+# "random" hands. BASHPID alone isn't enough in sequential mode - do_request runs
+# in the same process every call, so it never changes and the reseed always lands
+# on the same value, freezing board_count (the one draw taken before any subshell
+# fork) for the whole run. Mixing in a nanosecond timestamp keeps it unique call
+# to call even without a fork, while still varying across burst mode's forked PIDs.
 do_request() {
-  RANDOM=$BASHPID
+  RANDOM=$(( BASHPID ^ $(date +%s%N) ))
   local game=$1 hero_count=$2
   local board_count=${BOARD_COUNTS[$((RANDOM % 3))]}
   local hero board

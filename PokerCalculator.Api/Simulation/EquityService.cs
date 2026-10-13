@@ -79,7 +79,11 @@ public class EquityService
         stopwatch.Stop();
         _usage.RecordComputeTime(request.Game, stopwatch.ElapsedTicks);
 
-        if (useCache && simulationsRun >= _options.MinSimulationsToCache)
+        // MinSimulationsToCache exists to keep a Monte Carlo result computed under load
+        // reduction (ComputeLoadDivisor shrinking simsPerTask) from being cached as if it
+        // were full quality. An exact result has no such quality dimension - it's the real
+        // value regardless of how few evaluations it took - so it's always worth caching.
+        if (useCache && (useExact || simulationsRun >= _options.MinSimulationsToCache))
         {
             _cache.Set(cacheKey, new CachedEquityResult(total, simulationsRun, useExact));
         }
