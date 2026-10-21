@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <RootNamespace>PokerCalculator</RootNamespace>
     <AssemblyName>PokerCalculator</AssemblyName>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <NoWarn>$(NoWarn);CA1416;WFO1000</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,7 +15,7 @@ a WinForms tool for manual testing.
   the API so the two can be deployed as a single origin (no CORS needed). UI text is in
   Portuguese.
 - **PokerCalculator** (root `.csproj`) - a WinForms tool (`FMTest.cs`) for exercising the
-  evaluator manually. Windows-only (`net8.0-windows`).
+  evaluator manually. Windows-only (`net10.0-windows`).
 
 ## Running locally
 
