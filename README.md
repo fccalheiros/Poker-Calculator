@@ -13,7 +13,7 @@ a WinForms tool for manual testing.
 - **PokerCalculator.Web** - static frontend (`wwwroot/`) for building a hand, board and
   villain ranges by clicking cards, plus a small reverse proxy that forwards `/api/*` to
   the API so the two can be deployed as a single origin (no CORS needed). UI text is in
-  Portuguese.
+  English (translated from Portuguese for SEO/international reach).
 - **PokerCalculator** (root `.csproj`) - a WinForms tool (`FMTest.cs`) for exercising the
   evaluator manually. Windows-only (`net10.0-windows`).
 
