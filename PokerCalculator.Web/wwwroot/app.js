@@ -693,7 +693,10 @@ function renderResult(data) {
   document.getElementById("stat-loss").textContent = data.lossPercent.toFixed(4) + "%";
   document.getElementById("stat-tie").textContent = data.tiePercent.toFixed(4) + "%";
   document.getElementById("stat-equity").textContent = data.equity.toFixed(4) + "%";
-  document.getElementById("stat-sims").textContent = `${data.simulationsRun.toLocaleString("en-US")} simulations`;
+  const simsText = data.exact
+    ? `Exact result over ${data.simulationsRun.toLocaleString("en-US")} possible run-outs`
+    : `${data.simulationsRun.toLocaleString("en-US")} simulations`;
+  document.getElementById("stat-sims").textContent = simsText;
   document.getElementById("stat-cache").classList.toggle("hidden", !data.fromCache);
   resultSection.classList.remove("hidden");
 }
